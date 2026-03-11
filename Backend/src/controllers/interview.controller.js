@@ -69,8 +69,37 @@ const submitFeedback = async (req, res) => {
       });
 
       if (app) {
-        await advanceCandidateStage(app._id);
+        try {
+          await advanceCandidateStage(app._id);
+        } catch (advErr) {
+          console.error('advanceCandidateStage error:', advErr.message);
+        }
+
+        // Verify stage actually advanced past 'interview'
+        const verified = await ApplicationProgress.findById(app._id);
+        if (verified && verified.currentStage === 'interview') {
+          const stages = verified.pipelineStages || [];
+          if (!stages.some((s) => s.name === 'final')) {
+            stages.push({ name: 'final', label: 'Selected' });
+          }
+          await ApplicationProgress.findByIdAndUpdate(app._id, {
+            $set: { currentStage: 'final', pipelineStages: stages },
+          });
+        }
+      } else {
+        console.error('submitFeedback: ApplicationProgress not found for', {
+          userId: round.candidateId,
+          jobId: round.jobId,
+        });
       }
+    }
+
+    // If fail → reject candidate
+    if (result === 'fail') {
+      await ApplicationProgress.findOneAndUpdate(
+        { userId: round.candidateId, jobId: round.jobId },
+        { $set: { currentStage: 'rejected' } },
+      );
     }
 
     // Reload to return updated stage info

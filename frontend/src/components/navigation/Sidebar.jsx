@@ -65,24 +65,24 @@ const Sidebar = ({ role }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
         {links.map((link) => {
-          const isActive = location.pathname === link.to;
+          const isActive = location.pathname === link.to || location.pathname.startsWith(link.to + '/');
           const Icon = link.icon;
           return (
             <Link
               key={link.to}
               to={link.to}
               className={`
-                group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                transition-all duration-200
+                group flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium
+                transition-all duration-150
                 ${isActive
-                  ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-surface-200 border border-transparent'
+                  ? 'bg-[#111111] text-white border-l-2 border-primary'
+                  : 'text-gray-300 hover:bg-[#1a1a1a] hover:text-white border-l-2 border-transparent'
                 }
               `}
             >
-              <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary' : 'text-text-muted group-hover:text-text-primary'}`} />
+              <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-primary' : 'text-gray-300 group-hover:text-white'}`} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -101,11 +101,11 @@ const Sidebar = ({ role }) => {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-4 border-t border-border space-y-1">
+      <div className="px-3 py-4 border-t border-border space-y-2">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-            text-red-400 hover:bg-red-500/10 hover:text-red-300 w-full transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium
+            text-red-400 hover:bg-[#1a1a1a] hover:text-red-300 w-full transition-all duration-150"
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           <AnimatePresence>

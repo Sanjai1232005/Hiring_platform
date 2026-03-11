@@ -75,13 +75,18 @@ const ResumeScreening = ({ job, onStageUpdate }) => {
       ) : applicants.length === 0 ? (
         <p className="text-text-muted text-sm">No applicants found.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="rounded-lg border border-[#1f1f1f] overflow-hidden">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-10 bg-[#0a0a0a] flex items-center justify-between px-4 py-3 border-b border-[#1f1f1f]">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Action</span>
+          </div>
           {applicants.map((student) => (
             <div key={student._id}
-              className="flex items-center justify-between p-3 bg-surface-200 border border-border rounded-lg">
+              className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f1f] last:border-b-0 transition-colors hover:bg-[#111111]">
               <div>
-                <p className="text-sm font-medium text-text-primary">{student.userId?.name}</p>
-                <p className="text-xs text-text-muted">{student.userId?.email}</p>
+                <p className="text-sm font-medium text-gray-300">{student.userId?.name}</p>
+                <p className="text-xs text-gray-500">{student.userId?.email}</p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate('/student/' + student.userId?._id)} icon={Eye}>
                 Profile

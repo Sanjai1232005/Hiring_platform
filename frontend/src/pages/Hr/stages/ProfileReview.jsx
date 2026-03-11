@@ -102,37 +102,40 @@ const ProfileReview = ({ job, onStageUpdate }) => {
         <p className="text-text-muted text-sm">No applicants found.</p>
       ) : (
         <>
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {applicants.map((student) => {
-            const uid = student.userId?._id;
-            return (
-            <div key={student._id}
-              onClick={() => handleToggleStudent(uid)}
-              className={'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ' +
-                (selectedStudents.includes(uid)
-                  ? 'bg-primary/10 border-primary/30'
-                  : 'bg-surface-200 border-border hover:border-border-light')}>
-              <div className="flex items-center gap-3">
-                <div className={'w-5 h-5 rounded border flex items-center justify-center transition-colors ' +
-                  (selectedStudents.includes(uid) ? 'bg-primary border-primary text-white' : 'border-border')}>
-                  {selectedStudents.includes(uid) && <CheckSquare className="w-3.5 h-3.5" />}
+        <div className="rounded-lg border border-[#1f1f1f] overflow-hidden">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-10 bg-[#0a0a0a] grid grid-cols-[auto_1fr_auto_auto] items-center px-4 py-3 border-b border-[#1f1f1f]">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider w-8"></span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Score</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider text-right ml-4">Action</span>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {applicants.map((student) => {
+              const uid = student.userId?._id;
+              return (
+                <div key={student._id}
+                  onClick={() => handleToggleStudent(uid)}
+                  className={'grid grid-cols-[auto_1fr_auto_auto] items-center px-4 py-3 cursor-pointer transition-colors border-b border-[#1f1f1f] last:border-b-0 ' +
+                    (selectedStudents.includes(uid) ? 'bg-primary/10' : 'hover:bg-[#111111]')}>
+                  <div className={'w-5 h-5 rounded border flex items-center justify-center transition-colors mr-3 ' +
+                    (selectedStudents.includes(uid) ? 'bg-primary border-primary text-white' : 'border-[#1f1f1f]')}>
+                    {selectedStudents.includes(uid) && <CheckSquare className="w-3.5 h-3.5" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">{student.userId?.name}</p>
+                    <p className="text-xs text-gray-500">{student.userId?.email}</p>
+                  </div>
+                  <Badge variant={student.resumeScore >= 70 ? 'success' : student.resumeScore >= 40 ? 'warning' : 'danger'}>
+                    Score: {student.resumeScore ?? 'N/A'}
+                  </Badge>
+                  <Button variant="ghost" size="sm" className="ml-4" onClick={(e) => { e.stopPropagation(); navigate('/student/' + student.userId?._id); }} icon={Eye}>
+                    View
+                  </Button>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-text-primary">{student.userId?.name}</p>
-                  <p className="text-xs text-text-muted">{student.userId?.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={student.resumeScore >= 70 ? 'success' : student.resumeScore >= 40 ? 'warning' : 'danger'}>
-                  Score: {student.resumeScore ?? 'N/A'}
-                </Badge>
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate('/student/' + student.userId?._id); }} icon={Eye}>
-                  View
-                </Button>
-              </div>
-            </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {selectedStudents.length > 0 && (

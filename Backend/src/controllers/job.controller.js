@@ -10,6 +10,7 @@ const TaskSubmission = require('../models/taskSubmission.model');
 const ProctoringRecording = require('../models/proctoringRecording.model');
 const ExplanationRecording = require('../models/explanationRecording.model');
 const ExplanationAnalysis = require('../models/explanationAnalysis.model');
+const InterviewRound = require('../models/interviewRound.model');
 const { calculateCandidateScore, WEIGHTS } = require('../services/ranking.service');
 
 
@@ -287,7 +288,47 @@ const getCurrentStageofStudent = async(req,res) =>{
     // 1️⃣ Find all applications for the user
     const applications = await ApplicationProgress.find({ userId }).sort({ createdAt: -1 });
 
-    // 2️⃣ Fetch Job details for each application
+    // 2️⃣ Auto-fix: sync candidates stuck at 'interview' with their interview results
+    const interviewApps = applications.filter((a) => a.currentStage === 'interview');
+    if (interviewApps.length > 0) {
+      const jobIds = interviewApps.map((a) => a.jobId);
+      const decidedRounds = await InterviewRound.find({
+        candidateId: userId,
+        jobId: { $in: jobIds },
+        result: { $in: ['pass', 'fail'] },
+      });
+
+      // Build maps per jobId
+      const passedJobIds = new Set();
+      const failedJobIds = new Set();
+      for (const r of decidedRounds) {
+        const jid = r.jobId.toString();
+        if (r.result === 'pass') passedJobIds.add(jid);
+        if (r.result === 'fail') failedJobIds.add(jid);
+      }
+
+      for (const app of interviewApps) {
+        const jid = app.jobId.toString();
+        if (passedJobIds.has(jid)) {
+          // Pass takes priority over fail
+          const stages = app.pipelineStages || [];
+          if (!stages.some((s) => s.name === 'final')) {
+            stages.push({ name: 'final', label: 'Selected' });
+            app.pipelineStages = stages;
+          }
+          app.currentStage = 'final';
+          app.markModified('currentStage');
+          app.markModified('pipelineStages');
+          await app.save();
+        } else if (failedJobIds.has(jid)) {
+          app.currentStage = 'rejected';
+          app.markModified('currentStage');
+          await app.save();
+        }
+      }
+    }
+
+    // 3️⃣ Fetch Job details for each application
     const result = await Promise.all(
       applications.map(async (app) => {
         const job = await Job.findById(app.jobId).select("title company location employmentType assessmentStrategy");
@@ -317,6 +358,7 @@ const getCurrentStageofStudent = async(req,res) =>{
           overallScore: app.overallScore,
           isShortlisted: app.isShortlisted,
           resumeScore: app.resumeScore,
+          testScore: app.testScore,
         };
       })
     );
@@ -415,13 +457,42 @@ const getCandidateReviewData = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    const [applications, taskSubs, proctoring, explanations, analyses] = await Promise.all([
+    const [applications, taskSubs, proctoring, explanations, analyses, interviewRounds] = await Promise.all([
       ApplicationProgress.find({ jobId }).populate("userId", "name email"),
       TaskSubmission.find({ jobId }),
       ProctoringRecording.find({ jobId }),
       ExplanationRecording.find({ jobId }),
       ExplanationAnalysis.find({ jobId }),
+      InterviewRound.find({ jobId, result: { $in: ['pass', 'fail'] } }),
     ]);
+
+    // Auto-fix: sync candidates stuck at 'interview' with their interview results
+    const passedUserIds = new Set();
+    const failedUserIds = new Set();
+    for (const r of interviewRounds) {
+      const uid = r.candidateId.toString();
+      if (r.result === 'pass') passedUserIds.add(uid);
+      if (r.result === 'fail') failedUserIds.add(uid);
+    }
+    for (const app of applications) {
+      if (app.currentStage !== 'interview') continue;
+      const uid = app.userId?._id?.toString();
+      if (passedUserIds.has(uid)) {
+        const stages = app.pipelineStages || [];
+        if (!stages.some((s) => s.name === 'final')) {
+          stages.push({ name: 'final', label: 'Selected' });
+          app.pipelineStages = stages;
+        }
+        app.currentStage = 'final';
+        app.markModified('currentStage');
+        app.markModified('pipelineStages');
+        await app.save();
+      } else if (failedUserIds.has(uid)) {
+        app.currentStage = 'rejected';
+        app.markModified('currentStage');
+        await app.save();
+      }
+    }
 
     const subMap = {};
     taskSubs.forEach((s) => { subMap[s.candidateId.toString()] = s; });
