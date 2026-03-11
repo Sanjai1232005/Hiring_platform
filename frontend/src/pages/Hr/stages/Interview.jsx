@@ -5,7 +5,7 @@ import BASE_URL from '../../../apiConfig';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 
-export default function Interview({ job }) {
+export default function Interview({ job, onStageUpdate }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
 

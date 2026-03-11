@@ -26,6 +26,13 @@ async function advanceCandidateStage(applicationId) {
     application.pipelineStages = stages;
   }
 
+  // Patch legacy pipelines that are missing the 'final' stage
+  const hasFinal = stages.some((s) => s.name === 'final');
+  if (!hasFinal) {
+    stages.push({ name: 'final', label: 'Selected' });
+    application.pipelineStages = stages;
+  }
+
   const currentName = application.currentStage;
   const currentIndex = stages.findIndex((s) => s.name === currentName);
 

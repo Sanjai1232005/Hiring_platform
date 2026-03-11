@@ -24,6 +24,7 @@ import TestCodeEditorPage from '../pages/student/CodeEditor';
 import PostJob from '../pages/student/PostJob';
 import StudentTaskAssessment from '../pages/student/TaskAssessment';
 import StudentTaskList from '../pages/student/TaskList';
+import MyInterviews from '../pages/student/MyInterviews';
 
 // HR Pages
 import HrProfilePage from '../pages/Hr/Profile';
@@ -33,6 +34,7 @@ import HRDashboard from '../pages/Hr/Dashboard';
 import TaskAssessmentPage from '../pages/Hr/TaskAssessmentPage';
 import HRTaskDashboard from '../pages/Hr/HRTaskDashboard';
 import CandidateReviewPanel from '../pages/Hr/CandidateReviewPanel';
+import InterviewManager from '../pages/Hr/InterviewManager';
 
 function AppRoute() {
   return (
@@ -65,6 +67,7 @@ function AppRoute() {
         <Route path="/student/:id" element={<PublicStudentProfile />} />
         <Route path="/student/task-assessment/:jobId" element={<StudentTaskAssessment />} />
         <Route path="/student/task-assessment" element={<StudentTaskList />} />
+        <Route path="/student/interviews" element={<MyInterviews />} />
       </Route>
 
       {/* ================= TEST (full-screen, no sidebar) ================= */}
@@ -86,6 +89,7 @@ function AppRoute() {
         <Route path="/hr/task-assessment" element={<TaskAssessmentPage />} />
         <Route path="/hr/task-results" element={<HRTaskDashboard />} />
         <Route path="/hr/candidate-review" element={<CandidateReviewPanel />} />
+        <Route path="/hr/interviews" element={<InterviewManager />} />
         <Route path="/hr/jobs" element={<PostJob />} />
         <Route path="/hr/jobs/:id" element={<JobDetails />} />
       </Route>

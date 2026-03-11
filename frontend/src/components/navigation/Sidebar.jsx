@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Briefcase, FileText, ClipboardList,
-  ChevronLeft, ChevronRight, LogOut, User, Menu, X, BarChart3, Shield
+  ChevronLeft, ChevronRight, LogOut, User, Menu, X, BarChart3, Shield, Video
 } from 'lucide-react';
 
 const studentLinks = [
@@ -11,6 +11,7 @@ const studentLinks = [
   { to: '/jobs', label: 'Browse Jobs', icon: Briefcase },
   { to: '/student/profile', label: 'Profile', icon: User },
   { to: '/student/task-assessment', label: 'Tasks', icon: ClipboardList },
+  { to: '/student/interviews', label: 'Interviews', icon: Video },
 ];
 
 const hrLinks = [
@@ -20,6 +21,7 @@ const hrLinks = [
   { to: '/hr/task-assessment', label: 'Task Assessment', icon: ClipboardList },
   { to: '/hr/task-results', label: 'Task Results', icon: BarChart3 },
   { to: '/hr/candidate-review', label: 'Review Candidates', icon: Shield },
+  { to: '/hr/interviews', label: 'Interviews', icon: Video },
   { to: '/hr/profile', label: 'Profile', icon: User },
 ];
 

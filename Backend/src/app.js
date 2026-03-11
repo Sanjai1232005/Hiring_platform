@@ -11,6 +11,7 @@ const progressRoute = require("./routes/progress.routes");
 const emailRoute = require("./routes/email.routes");
 const authRoute = require("./routes/auth.routes");
 const taskRoute = require("./routes/task.routes");
+const interviewRoute = require("./routes/interview.routes");
 
 // Middlewares
 const logger = require("./utils/logger");
@@ -43,6 +44,7 @@ app.use("/api/test", testRoute);
 app.use("/api/progress", progressRoute);
 app.use("/api/email", emailRoute);
 app.use("/api/tasks", taskRoute);
+app.use("/api/interview", interviewRoute);
 
 // Health check
 app.get("/", (req, res) => {
