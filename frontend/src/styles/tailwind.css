@@ -57,5 +57,31 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
+
+  .text-gradient-warm {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber to-rose;
+  }
+
+  .text-gradient-cool {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan to-primary;
+  }
+
+  .text-gradient-vivid {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet via-primary to-cyan;
+  }
+
+  .mesh-gradient {
+    background: radial-gradient(at 40% 20%, rgba(99,102,241,0.15) 0, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(6,182,212,0.12) 0, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(139,92,246,0.1) 0, transparent 50%),
+                radial-gradient(at 80% 60%, rgba(34,197,94,0.08) 0, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(244,63,94,0.08) 0, transparent 50%);
+  }
+
+  .shimmer-border {
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s linear infinite;
+  }
 }
 
