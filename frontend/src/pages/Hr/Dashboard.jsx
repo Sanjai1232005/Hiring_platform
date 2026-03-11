@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Briefcase, ChevronRight, CheckCircle2, Clock, Circle } from 'lucide-react';
 import ResumeScreening from './stages/ResumeScreening';
@@ -12,44 +12,69 @@ import { SkeletonCard } from '../../components/ui/Loader';
 import EmptyState from '../../components/ui/EmptyState';
 import { PageWrapper } from '../../components/animations/pageTransition';
 
-const stages = [
-  { key: 'resume', label: 'Resume Screening', component: ResumeScreening },
-  { key: 'profile', label: 'Profile Review', component: ProfileReview },
-  { key: 'coding', label: 'Coding Test', component: CodingTest },
-  { key: 'evaluation', label: 'Test Evaluation', component: TestEvaluation },
-  { key: 'interview', label: 'Interview', component: Interview },
-];
+/* ── build the stage list dynamically from the job's assessmentStrategy ── */
+const getStagesForStrategy = (strategy) => {
+  const resume = { key: 'resume', label: 'Resume Screening', component: ResumeScreening };
+  const profile = { key: 'profile', label: 'Profile Review', component: ProfileReview };
+  const coding = { key: 'coding', label: 'Coding Test', component: CodingTest };
+  const task = { key: 'task', label: 'Task Assessment', component: CodingTest };
+  const evaluation = { key: 'evaluation', label: 'Test Evaluation', component: TestEvaluation };
+  const interview = { key: 'interview', label: 'Interview', component: Interview };
+
+  switch (strategy) {
+    case 'task_only':
+      return [resume, profile, task, evaluation, interview];
+    case 'coding_then_task':
+      return [resume, profile, coding, task, evaluation, interview];
+    case 'task_then_coding':
+      return [resume, profile, task, coding, evaluation, interview];
+    case 'none':
+      return [resume, profile, evaluation, interview];
+    default: // coding_only
+      return [resume, profile, coding, evaluation, interview];
+  }
+};
 
 const HRDashboard = () => {
   const [hrData, setHrData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
 
-  useEffect(() => {
-    const fetchHrJobs = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(BASE_URL + '/job/getjobs', {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-        setHrData(res.data.jobs || []);
-      } catch (err) {
-        console.error('Error fetching jobs:', err);
-      } finally {
-        setLoading(false);
+  const fetchHrJobs = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(BASE_URL + '/job/getjobs', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      const jobs = res.data.jobs || [];
+      setHrData(jobs);
+      // Keep selectedJob in sync after refresh
+      if (selectedJob) {
+        const updated = jobs.find((j) => j._id === selectedJob._id);
+        if (updated) setSelectedJob(updated);
       }
-    };
-    fetchHrJobs();
-  }, []);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedJob]);
+
+  useEffect(() => { fetchHrJobs(); }, []);
 
   const handleJobSelect = (job) => setSelectedJob(job);
+
+  /* Called by stage components after a stage change so the dashboard refreshes */
+  const handleStageUpdate = () => fetchHrJobs();
+
+  const stages = selectedJob ? getStagesForStrategy(selectedJob.assessmentStrategy) : [];
 
   const renderStageComponent = () => {
     if (!selectedJob) return null;
     const stageObj = stages.find((s) => s.key === selectedJob.stage);
     if (!stageObj) return <p className="text-text-muted">Unknown Stage</p>;
     const StageComponent = stageObj.component;
-    return <StageComponent job={selectedJob} />;
+    return <StageComponent job={selectedJob} onStageUpdate={handleStageUpdate} />;
   };
 
   const renderStageTracker = () => {

@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Users, Loader2, CheckCircle, XCircle, Star,
   ChevronDown, ChevronUp, Shield, Brain, Eye,
-  ClipboardList, Code2, FileText, ArrowRight,
+  ClipboardList, Code2, FileText, ArrowRight, Trophy,
 } from 'lucide-react';
 import BASE_URL from '../../apiConfig';
 import { Select } from '../../components/ui/Input';
@@ -59,6 +59,14 @@ const stageColor = (stage) => {
 const stageLabel = (name) =>
   name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
+/* ─── rank badge colors ─── */
+const rankStyle = (rank) => {
+  if (rank === 1) return 'bg-amber-400/20 text-amber-300 border-amber-400/40';
+  if (rank === 2) return 'bg-slate-300/20 text-slate-300 border-slate-400/40';
+  if (rank === 3) return 'bg-orange-400/20 text-orange-300 border-orange-400/40';
+  return 'bg-surface-200 text-text-muted border-border';
+};
+
 /* ─── single candidate card ─── */
 const CandidateCard = ({ c, onDecision, actionLoading }) => {
   const [open, setOpen] = useState(false);
@@ -75,6 +83,10 @@ const CandidateCard = ({ c, onDecision, actionLoading }) => {
         onClick={() => setOpen((o) => !o)}
       >
         <div className="flex items-center gap-3 min-w-0">
+          {/* rank badge */}
+          <div className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankStyle(c.rank)}`}>
+            {c.rank <= 3 ? <Trophy className="w-3.5 h-3.5" /> : `#${c.rank}`}
+          </div>
           <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
             {(c.candidateName || '?')[0].toUpperCase()}
           </div>
@@ -85,6 +97,12 @@ const CandidateCard = ({ c, onDecision, actionLoading }) => {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* overall score pill */}
+          {c.overallScore != null && (
+            <span className="px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-xs font-bold text-primary">
+              {c.overallScore.toFixed(1)}%
+            </span>
+          )}
           <Badge variant={stageColor(c.currentStage)} dot>
             {stageLabel(c.currentStage)}
           </Badge>
@@ -108,6 +126,33 @@ const CandidateCard = ({ c, onDecision, actionLoading }) => {
                     </Badge>
                     {i < c.pipelineStages.length - 1 && <ArrowRight className="w-3 h-3 text-text-muted" />}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Overall Score Breakdown */}
+          {c.overallScore != null && (
+            <div className="bg-gradient-to-r from-primary/5 to-cyan-400/5 rounded-lg p-4 border border-primary/10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  <Trophy className="w-3.5 h-3.5 text-amber-400" /> Overall Ranking Score
+                </div>
+                <span className="text-lg font-bold text-primary">{c.overallScore.toFixed(1)}%</span>
+              </div>
+              <div className="grid grid-cols-5 gap-2 text-center">
+                {[
+                  { label: 'Resume', value: c.resumeScore, weight: '30%', color: 'text-accent' },
+                  { label: 'Coding', value: c.codingScore, weight: '30%', color: 'text-primary' },
+                  { label: 'Task', value: c.aiAnalysis?.overall_score, weight: '20%', color: 'text-amber-400' },
+                  { label: 'Explanation', value: (() => { const a = c.aiAnalysis; const s = [a?.communication_score, a?.technical_depth, a?.confidence_level, a?.problem_solving].filter(Boolean); return s.length ? (s.reduce((x,y)=>x+y,0)/s.length).toFixed(0) : null; })(), weight: '10%', color: 'text-violet-400' },
+                  { label: 'Proctoring', value: c.proctoring?.analysis?.attentionScore, weight: '10%', color: 'text-cyan-400' },
+                ].map((item) => (
+                  <div key={item.label} className="bg-surface-100/80 rounded-md p-2 border border-border/30">
+                    <p className="text-[10px] text-text-muted">{item.label}</p>
+                    <p className={`text-sm font-bold ${item.color}`}>{item.value != null ? item.value : '—'}</p>
+                    <p className="text-[9px] text-text-muted">{item.weight}</p>
+                  </div>
                 ))}
               </div>
             </div>

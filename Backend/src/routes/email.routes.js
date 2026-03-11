@@ -13,11 +13,20 @@ const jwt = require("jsonwebtoken");
 router.post("/send-test-email/:jobId", async (req, res) => {
   try {
     const { jobId } = req.params;
-    const { startTime, endTime, description, jobTitle } = req.body;
-    
+    const { startTime, endTime, description, jobTitle, studentIds } = req.body;
+
+    const filter = { jobId };
+    if (studentIds && studentIds.length > 0) {
+      // Send only to selected students
+      const mongoose = require('mongoose');
+      filter.userId = { $in: studentIds.map(id => new mongoose.Types.ObjectId(id)) };
+    } else {
+      // Fallback: send to all at coding-related stages
+      filter.currentStage = { $in: ['coding', 'coding_test'] };
+    }
 
     const applications = await ApplicationProgress
-      .find({ jobId, currentStage: "coding" })
+      .find(filter)
       .populate("userId", "name email");
 
     console.log(applications.length);

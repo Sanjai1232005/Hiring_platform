@@ -33,7 +33,9 @@ const applicationProgressSchema = new mongoose.Schema({
     default: 'applied'
   },
 
-  isShortlisted: { type: Boolean, default: false }
+  isShortlisted: { type: Boolean, default: false },
+
+  overallScore: { type: Number, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('ApplicationProgress', applicationProgressSchema);

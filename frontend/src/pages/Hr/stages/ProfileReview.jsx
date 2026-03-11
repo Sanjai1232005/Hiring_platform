@@ -6,7 +6,7 @@ import BASE_URL from '../../../apiConfig';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 
-const ProfileReview = ({ job }) => {
+const ProfileReview = ({ job, onStageUpdate }) => {
   const [applicants, setApplicants] = useState([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -35,13 +35,13 @@ const ProfileReview = ({ job }) => {
   }, [job]);
 
   const handleSelectTopStudents = () => {
-    const topStudents = applicants.slice(0, selectCount).map((s) => s._id);
+    const topStudents = applicants.slice(0, selectCount).map((s) => s.userId?._id);
     setSelectedStudents(topStudents);
   };
 
-  const handleToggleStudent = (studentId) => {
+  const handleToggleStudent = (userId) => {
     setSelectedStudents((prev) =>
-      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
     );
   };
 
@@ -53,14 +53,22 @@ const ProfileReview = ({ job }) => {
     setProcessing(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(BASE_URL + '/job/' + job._id + '/stageChange', { stage: 'coding' }, {
+      // Determine the next job stage based on assessmentStrategy
+      const strategy = job.assessmentStrategy || 'coding_only';
+      const nextJobStage =
+        strategy === 'task_only' || strategy === 'task_then_coding' ? 'task' :
+        strategy === 'none' ? 'evaluation' : 'coding';
+
+      await axios.post(BASE_URL + '/job/' + job._id + '/stageChange', { stage: nextJobStage }, {
         headers: { Authorization: 'Bearer ' + token },
       });
-      await axios.post(BASE_URL + '/job/' + job._id + '/stageChangeInStudent', { studentIds: selectedStudents, stage: 'coding' }, {
+      // Advance selected candidates to their next pipeline stage
+      await axios.post(BASE_URL + '/job/' + job._id + '/stageChangeInStudent', { studentIds: selectedStudents }, {
         headers: { Authorization: 'Bearer ' + token },
       });
       alert('Selection confirmed and stages updated!');
       setSelectedStudents([]);
+      if (onStageUpdate) onStageUpdate();
     } catch (err) {
       console.error('Error confirming selection:', err);
       alert('Failed to update stages.');
@@ -93,18 +101,21 @@ const ProfileReview = ({ job }) => {
       ) : applicants.length === 0 ? (
         <p className="text-text-muted text-sm">No applicants found.</p>
       ) : (
+        <>
         <div className="space-y-2 max-h-80 overflow-y-auto">
-          {applicants.map((student) => (
+          {applicants.map((student) => {
+            const uid = student.userId?._id;
+            return (
             <div key={student._id}
-              onClick={() => handleToggleStudent(student._id)}
+              onClick={() => handleToggleStudent(uid)}
               className={'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ' +
-                (selectedStudents.includes(student._id)
+                (selectedStudents.includes(uid)
                   ? 'bg-primary/10 border-primary/30'
                   : 'bg-surface-200 border-border hover:border-border-light')}>
               <div className="flex items-center gap-3">
                 <div className={'w-5 h-5 rounded border flex items-center justify-center transition-colors ' +
-                  (selectedStudents.includes(student._id) ? 'bg-primary border-primary text-white' : 'border-border')}>
-                  {selectedStudents.includes(student._id) && <CheckSquare className="w-3.5 h-3.5" />}
+                  (selectedStudents.includes(uid) ? 'bg-primary border-primary text-white' : 'border-border')}>
+                  {selectedStudents.includes(uid) && <CheckSquare className="w-3.5 h-3.5" />}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-text-primary">{student.userId?.name}</p>
@@ -120,15 +131,17 @@ const ProfileReview = ({ job }) => {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
-      )}
 
-      {selectedStudents.length > 0 && (
-        <div className="mt-4 flex items-center gap-3">
-          <span className="text-sm text-text-muted">{selectedStudents.length} selected</span>
-          <Button onClick={handleConfirmSelection} loading={processing}>Confirm Selection</Button>
-        </div>
+        {selectedStudents.length > 0 && (
+          <div className="mt-4 flex items-center gap-3">
+            <span className="text-sm text-text-muted">{selectedStudents.length} selected</span>
+            <Button onClick={handleConfirmSelection} loading={processing}>Confirm Selection</Button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

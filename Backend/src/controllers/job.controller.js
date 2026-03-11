@@ -10,6 +10,7 @@ const TaskSubmission = require('../models/taskSubmission.model');
 const ProctoringRecording = require('../models/proctoringRecording.model');
 const ExplanationRecording = require('../models/explanationRecording.model');
 const ExplanationAnalysis = require('../models/explanationAnalysis.model');
+const { calculateCandidateScore, WEIGHTS } = require('../services/ranking.service');
 
 
 
@@ -289,16 +290,33 @@ const getCurrentStageofStudent = async(req,res) =>{
     // 2️⃣ Fetch Job details for each application
     const result = await Promise.all(
       applications.map(async (app) => {
-        const job = await Job.findById(app.jobId).select("title company location employmentType");
+        const job = await Job.findById(app.jobId).select("title company location employmentType assessmentStrategy");
+
+        const stages = app.pipelineStages || [];
+        // Patch legacy pipelines missing the 'final' stage
+        if (stages.length > 0 && !stages.some((s) => s.name === 'final')) {
+          stages.push({ name: 'final', label: 'Selected' });
+          app.pipelineStages = stages;
+          await app.save();
+        }
 
         return {
+          _id: app._id,
           applicationId: app._id,
           jobId: app.jobId,
           jobTitle: job?.title || "N/A",
           company: job?.company || "N/A",
           location: job?.location || "Remote",
           employmentType: job?.employmentType || "N/A",
-          currentStage: app.currentStage
+          assessmentStrategy: job?.assessmentStrategy || "coding_only",
+          currentStage: app.currentStage,
+          pipelineStages: stages,
+          testLink: app.testLink || null,
+          testToken: app.testToken || null,
+          testCompleted: app.testCompleted,
+          overallScore: app.overallScore,
+          isShortlisted: app.isShortlisted,
+          resumeScore: app.resumeScore,
         };
       })
     );
@@ -465,7 +483,26 @@ const getCandidateReviewData = async (req, res) => {
       };
     });
 
-    res.json({ success: true, data: { candidates } });
+    // Calculate overall scores for all candidates
+    await Promise.all(
+      applications.map((app) =>
+        calculateCandidateScore(app.userId?._id?.toString(), jobId)
+      )
+    );
+
+    // Reload scores and attach to response
+    const updatedApps = await ApplicationProgress.find({ jobId });
+    const scoreMap = {};
+    updatedApps.forEach((a) => { scoreMap[a.userId.toString()] = a.overallScore; });
+    candidates.forEach((c) => { c.overallScore = scoreMap[c.candidateId] ?? null; });
+
+    // Sort by overallScore descending (nulls last)
+    candidates.sort((a, b) => (b.overallScore ?? -1) - (a.overallScore ?? -1));
+
+    // Attach rank
+    candidates.forEach((c, i) => { c.rank = i + 1; });
+
+    res.json({ success: true, data: { candidates, weights: WEIGHTS } });
   } catch (err) {
     console.error("Error in getCandidateReviewData:", err);
     res.status(500).json({ message: "Server error" });

@@ -5,7 +5,7 @@ import { Eye, Loader2 } from 'lucide-react';
 import BASE_URL from '../../../apiConfig';
 import Button from '../../../components/ui/Button';
 
-const ResumeScreening = ({ job }) => {
+const ResumeScreening = ({ job, onStageUpdate }) => {
   const [applicants, setApplicants] = useState([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -42,6 +42,7 @@ const ResumeScreening = ({ job }) => {
         headers: { Authorization: 'Bearer ' + token },
       });
       alert('Resume screening completed successfully!');
+      if (onStageUpdate) onStageUpdate();
     } catch (err) {
       console.error('Error processing resumes:', err);
       alert('Failed to process resumes.');

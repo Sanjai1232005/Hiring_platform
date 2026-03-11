@@ -5,6 +5,7 @@ const PIPELINES = {
     { name: 'coding_test',      label: 'Coding Test' },
     { name: 'hr_review',        label: 'HR Review' },
     { name: 'interview',        label: 'Interview' },
+    { name: 'final',            label: 'Selected' },
   ],
   task_only: [
     { name: 'applied',          label: 'Applied' },
@@ -12,6 +13,7 @@ const PIPELINES = {
     { name: 'task_assessment',  label: 'Task Assessment' },
     { name: 'hr_review',        label: 'HR Review' },
     { name: 'interview',        label: 'Interview' },
+    { name: 'final',            label: 'Selected' },
   ],
   coding_then_task: [
     { name: 'applied',          label: 'Applied' },
@@ -20,6 +22,7 @@ const PIPELINES = {
     { name: 'task_assessment',  label: 'Task Assessment' },
     { name: 'hr_review',        label: 'HR Review' },
     { name: 'interview',        label: 'Interview' },
+    { name: 'final',            label: 'Selected' },
   ],
   task_then_coding: [
     { name: 'applied',          label: 'Applied' },
@@ -28,12 +31,14 @@ const PIPELINES = {
     { name: 'coding_test',      label: 'Coding Test' },
     { name: 'hr_review',        label: 'HR Review' },
     { name: 'interview',        label: 'Interview' },
+    { name: 'final',            label: 'Selected' },
   ],
   none: [
     { name: 'applied',          label: 'Applied' },
     { name: 'resume_screening', label: 'Resume Screening' },
     { name: 'hr_review',        label: 'HR Review' },
     { name: 'interview',        label: 'Interview' },
+    { name: 'final',            label: 'Selected' },
   ],
 };
 

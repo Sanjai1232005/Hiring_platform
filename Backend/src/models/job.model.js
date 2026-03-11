@@ -70,7 +70,7 @@ const jobSchema = new mongoose.Schema(
       type:Boolean,
       default:false,
     },
-    stage: { type: String, enum: ["resume", "profile", "coding", "evaluation", "interview"], default: "resume" },
+    stage: { type: String, enum: ["resume", "profile", "coding", "task", "evaluation", "interview", "selected"], default: "resume" },
     assessmentStrategy: {
       type: String,
       enum: ["coding_only", "task_only", "coding_then_task", "task_then_coding", "none"],
