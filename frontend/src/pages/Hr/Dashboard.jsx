@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-
-import ResumeScreening from "./stages/ResumeScreening";
-import ProfileReview from "./stages/ProfileReview";
-import CodingTest from "./stages/CodingTest";
-import TestEvaluation from "./stages/TestEvaluation";
-import Interview from "./stages/Interview";
-
-import BASE_URL from "../../apiConfig";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Briefcase, ChevronRight, CheckCircle2, Clock, Circle } from 'lucide-react';
+import ResumeScreening from './stages/ResumeScreening';
+import ProfileReview from './stages/ProfileReview';
+import CodingTest from './stages/CodingTest';
+import TestEvaluation from './stages/TestEvaluation';
+import Interview from './stages/Interview';
+import BASE_URL from '../../apiConfig';
+import Badge from '../../components/ui/Badge';
+import { SkeletonCard } from '../../components/ui/Loader';
+import EmptyState from '../../components/ui/EmptyState';
+import { PageWrapper } from '../../components/animations/pageTransition';
 
 const stages = [
-  { key: "resume", label: "Resume Screening", component: ResumeScreening },
-  { key: "profile", label: "Profile Review", component: ProfileReview },
-  { key: "coding", label: "Coding Test", component: CodingTest },
-  { key: "evaluation", label: "Test Evaluation", component: TestEvaluation },
-  { key: "interview", label: "Interview", component: Interview },
+  { key: 'resume', label: 'Resume Screening', component: ResumeScreening },
+  { key: 'profile', label: 'Profile Review', component: ProfileReview },
+  { key: 'coding', label: 'Coding Test', component: CodingTest },
+  { key: 'evaluation', label: 'Test Evaluation', component: TestEvaluation },
+  { key: 'interview', label: 'Interview', component: Interview },
 ];
 
 const HRDashboard = () => {
@@ -25,19 +28,17 @@ const HRDashboard = () => {
   useEffect(() => {
     const fetchHrJobs = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${BASE_URL}/job/getjobs`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = localStorage.getItem('token');
+        const res = await axios.get(BASE_URL + '/job/getjobs', {
+          headers: { Authorization: 'Bearer ' + token },
         });
         setHrData(res.data.jobs || []);
       } catch (err) {
-        console.error("Error fetching jobs:", err);
-        alert("Failed to fetch jobs");
+        console.error('Error fetching jobs:', err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchHrJobs();
   }, []);
 
@@ -45,46 +46,29 @@ const HRDashboard = () => {
 
   const renderStageComponent = () => {
     if (!selectedJob) return null;
-
     const stageObj = stages.find((s) => s.key === selectedJob.stage);
-    if (!stageObj) return <p>Unknown Stage</p>;
-
+    if (!stageObj) return <p className="text-text-muted">Unknown Stage</p>;
     const StageComponent = stageObj.component;
     return <StageComponent job={selectedJob} />;
   };
 
   const renderStageTracker = () => {
     if (!selectedJob) return null;
-
     const currentIndex = stages.findIndex((s) => s.key === selectedJob.stage);
 
     return (
-      <div className="relative flex items-center justify-between my-6 px-6">
-        {/* Line */}
-        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 rounded-full -z-10" />
-
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
         {stages.map((stage, index) => {
-          let status = "pending";
-          if (index < currentIndex) status = "completed";
-          else if (index === currentIndex) status = "current";
-
-          const color =
-            status === "completed"
-              ? "bg-green-500 text-white"
-              : status === "current"
-              ? "bg-blue-600 text-white ring-4 ring-blue-200"
-              : "bg-gray-300 text-gray-600";
-
+          const completed = index < currentIndex;
+          const current = index === currentIndex;
           return (
-            <div key={stage.key} className="flex flex-col items-center w-full">
-              <div
-                className={`w-10 h-10 flex items-center justify-center rounded-full font-bold shadow ${color}`}
-              >
-                {index + 1}
-              </div>
-              <p className="text-xs mt-2 text-gray-700 text-center w-20">
+            <div key={stage.key} className="flex items-center gap-2 shrink-0">
+              <div className={'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+                (completed ? 'bg-accent/10 text-accent' : current ? 'bg-primary/10 text-primary ring-1 ring-primary/30' : 'bg-surface-200 text-text-muted')}>
+                {completed ? <CheckCircle2 className="w-4 h-4" /> : current ? <Clock className="w-4 h-4" /> : <Circle className="w-3.5 h-3.5" />}
                 {stage.label}
-              </p>
+              </div>
+              {index < stages.length - 1 && <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />}
             </div>
           );
         })}
@@ -92,70 +76,73 @@ const HRDashboard = () => {
     );
   };
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen text-lg">
-        Loading HR Dashboard...
+  if (loading) return (
+    <PageWrapper>
+      <div className="space-y-4">
+        {[1,2,3].map(i => <SkeletonCard key={i} />)}
       </div>
-    );
+    </PageWrapper>
+  );
 
   return (
-    <div className="flex h-screen pt-20 bg-gradient-to-br from-[#f5f8ff] to-[#e9efff]">
-
-      {/* SIDEBAR */}
-      <div className="w-72 bg-white/80 backdrop-blur-xl border-r shadow-lg p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Your Jobs</h2>
-
+    <div className="flex h-[calc(100vh-64px)]">
+      {/* Sidebar */}
+      <div className="w-72 border-r border-border bg-surface-100 p-4 overflow-y-auto shrink-0">
+        <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">Your Jobs</h2>
         {hrData.length === 0 ? (
-          <p className="text-gray-500">No jobs available</p>
+          <p className="text-text-muted text-sm">No jobs created yet</p>
         ) : (
-          hrData.map((job) => (
-            <div
-              key={job._id}
-              onClick={() => handleJobSelect(job)}
-              className={`p-4 mb-3 rounded-xl cursor-pointer transition border ${
-                selectedJob?._id === job._id
-                  ? "bg-blue-100 border-blue-400 shadow-md"
-                  : "bg-white hover:bg-gray-100 border-gray-200"
-              }`}
-            >
-              <h3 className="text-gray-800 font-medium">{job.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{job.company}</p>
-            </div>
-          ))
+          <div className="space-y-2">
+            {hrData.map((job) => (
+              <button
+                key={job._id}
+                onClick={() => handleJobSelect(job)}
+                className={'w-full text-left p-3 rounded-lg border transition-colors ' +
+                  (selectedJob?._id === job._id
+                    ? 'bg-primary/10 border-primary/30 text-text-primary'
+                    : 'bg-surface-200 border-border text-text-secondary hover:border-border-light')}
+              >
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{job.title}</p>
+                    <p className="text-xs text-text-muted truncate">{job.company}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 p-8 overflow-y-auto">
+      {/* Main */}
+      <div className="flex-1 overflow-y-auto p-6">
         {selectedJob ? (
-          <>
+          <PageWrapper>
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">
-                {selectedJob.title}
-              </h2>
-              <p className="text-gray-600 mt-1">
-                Stage:{" "}
-                <span className="font-semibold text-blue-600">
-                  {selectedJob.stage.toUpperCase()}
-                </span>
-              </p>
+              <h1 className="text-2xl font-bold text-text-primary">{selectedJob.title}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-text-muted text-sm">Current stage:</span>
+                <Badge variant="primary">{selectedJob.stage?.toUpperCase()}</Badge>
+              </div>
             </div>
 
             {/* Stage Tracker */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border p-6">
+            <div className="bg-surface-100 border border-border rounded-lg p-4 mb-6">
               {renderStageTracker()}
             </div>
 
-            {/* Stage Work Panel */}
-            <div className="mt-6 bg-white/80 backdrop-blur-xl shadow-lg border p-6 rounded-xl">
+            {/* Stage Content */}
+            <div className="bg-surface-100 border border-border rounded-lg p-6">
               {renderStageComponent()}
             </div>
-          </>
+          </PageWrapper>
         ) : (
-          <div className="text-center text-gray-600 text-lg mt-20">
-            ← Select a job from the sidebar to view details.
-          </div>
+          <EmptyState
+            title="Select a job"
+            description="Choose a job from the sidebar to view its recruitment pipeline"
+            icon={Briefcase}
+          />
         )}
       </div>
     </div>

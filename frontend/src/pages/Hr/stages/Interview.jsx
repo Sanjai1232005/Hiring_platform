@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-
-import BASE_URL from "../../../apiConfig";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Loader2, CheckCircle2, Phone } from 'lucide-react';
+import BASE_URL from '../../../apiConfig';
+import Button from '../../../components/ui/Button';
+import Badge from '../../../components/ui/Badge';
 
 export default function Interview({ job }) {
   const [students, setStudents] = useState([]);
@@ -9,88 +11,66 @@ export default function Interview({ job }) {
 
   useEffect(() => {
     if (!job) return;
-
     const fetchInterviewStudents = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${BASE_URL}/job/students/${job._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = localStorage.getItem('token');
+        const res = await axios.get(BASE_URL + '/job/students/' + job._id, {
+          headers: { Authorization: 'Bearer ' + token },
         });
-
-        const interviewStudents = (res.data || []).filter(
-          (student) => student.currentStage === "interview"
-        );
-
-        setStudents(interviewStudents);
+        setStudents((res.data || []).filter((s) => s.currentStage === 'interview'));
       } catch (err) {
-        console.error("Error fetching students:", err);
-        alert("Failed to fetch students.");
+        console.error('Error fetching students:', err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchInterviewStudents();
   }, [job]);
 
   const markAsContacted = async (studentId) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${BASE_URL}/students/${studentId}/mark-contacted`,
-        { jobId: job._id }, // ✅ sending jobId along with request
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
+      const token = localStorage.getItem('token');
+      await axios.post(BASE_URL + '/students/' + studentId + '/mark-contacted', { jobId: job._id }, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
       setStudents((prev) =>
-        prev.map((student) =>
-          student._id === studentId
-            ? { ...student, contacted: true }
-            : student
-        )
+        prev.map((s) => s._id === studentId ? { ...s, contacted: true } : s)
       );
     } catch (err) {
-      console.error("Error marking student as contacted:", err);
-      alert("Failed to mark as contacted.");
+      console.error('Error marking student as contacted:', err);
+      alert('Failed to mark as contacted.');
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Interview Students</h2>
+    <div>
+      <h3 className="text-lg font-semibold text-text-primary mb-4">Interview Stage</h3>
 
       {loading ? (
-        <p>Loading students...</p>
+        <div className="flex items-center gap-2 text-text-muted text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>
       ) : students.length === 0 ? (
-        <p>No students are at the interview stage.</p>
+        <p className="text-text-muted text-sm">No students at interview stage.</p>
       ) : (
-        <ul className="space-y-4">
+        <div className="space-y-2">
           {students.map((student) => (
-            <li
-              key={student._id}
-              className="border p-4 rounded bg-gray-50 shadow-sm flex justify-between items-center"
-            >
+            <div key={student._id}
+              className="flex items-center justify-between p-4 bg-surface-200 border border-border rounded-lg">
               <div>
-                <p className="font-medium text-lg">{student.userId?.name}</p>
-                <p className="text-sm text-gray-600">📧 {student.userId?.email}</p>
-                <p className="text-sm text-gray-600">Score: {student.testScore}</p>
+                <p className="text-sm font-medium text-text-primary">{student.userId?.name}</p>
+                <p className="text-xs text-text-muted">{student.userId?.email}</p>
+                <p className="text-xs text-text-muted mt-1">Score: <span className="text-text-secondary">{student.testScore}</span></p>
               </div>
-              <div>
-                {student.contacted ? (
-                  <span className="text-green-600 font-semibold">Contacted</span>
-                ) : (
-                  <button
-                    onClick={() => markAsContacted(student._id)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Mark as Contacted
-                  </button>
-                )}
-              </div>
-            </li>
+              {student.contacted ? (
+                <Badge variant="success"><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Contacted</Badge>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={() => markAsContacted(student._id)} icon={Phone}>
+                  Mark Contacted
+                </Button>
+              )}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

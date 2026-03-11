@@ -1,20 +1,24 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import Loader from "../../components/common/Loader";
-import API from "../../apiConfig";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { CheckCircle2, Clock } from 'lucide-react';
+import API from '../../apiConfig';
+import { PageWrapper, StaggerList, StaggerItem } from '../../components/animations/pageTransition';
+import { SkeletonCard } from '../../components/ui/Loader';
+import EmptyState from '../../components/ui/EmptyState';
+import Badge from '../../components/ui/Badge';
 
-const stages = ["resume", "test", "interview", "final", "rejected"];
+const stages = ['resume', 'test', 'interview', 'final', 'rejected'];
 
 const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const res = await axios.get(`${API}/job/my-applications-stages`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await axios.get(API + '/job/my-applications-stages', {
+          headers: { Authorization: 'Bearer ' + token },
         });
         setApplications(res.data);
       } catch (err) {
@@ -23,7 +27,6 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
     fetchApplications();
     const interval = setInterval(fetchApplications, 5000);
     return () => clearInterval(interval);
@@ -31,95 +34,83 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader />
-      </div>
+      <PageWrapper>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
+          <p className="text-text-secondary mt-1">Track your application progress.</p>
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+        </div>
+      </PageWrapper>
     );
   }
 
   if (applications.length === 0) {
     return (
-      <div className="text-center mt-20 text-lg text-gray-600">
-        No applications found.
-      </div>
+      <PageWrapper>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
+          <p className="text-text-secondary mt-1">Track your application progress.</p>
+        </div>
+        <EmptyState
+          title="No applications yet"
+          description="Start applying to jobs to see your progress here."
+        />
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f7faff] via-[#edf1ff] to-[#e8edff] px-6 py-24">
-
-      {/* Header Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900">My Application Progress</h1>
-        <p className="text-gray-600 mt-2">
-          Track your application status across companies.
+    <PageWrapper>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
+        <p className="text-text-secondary mt-1">
+          {applications.length} active application{applications.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      {/* Applications List */}
-      <div className="max-w-5xl mx-auto space-y-10">
+      <StaggerList className="space-y-4">
         {applications.map((app) => (
-          <div
-            key={app._id}
-            className="bg-white shadow-lg rounded-2xl p-8 border border-gray-100 hover:shadow-xl transition"
-          >
-            {/* Job Title */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                {app.jobTitle}
-              </h2>
-              <p className="text-gray-600 text-sm">{app.company}</p>
-            </div>
+          <StaggerItem key={app._id}>
+            <div className="bg-surface-100 border border-border rounded-lg p-6 hover:border-border-light transition-all">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-text-primary">{app.jobTitle}</h2>
+                  <p className="text-sm text-text-secondary">{app.company}</p>
+                </div>
+                <Badge
+                  variant={app.currentStage === 'rejected' ? 'danger' : app.currentStage === 'final' ? 'success' : 'primary'}
+                  dot
+                >
+                  {app.currentStage}
+                </Badge>
+              </div>
 
-            {/* Progress Timeline */}
-            <div className="flex justify-between items-center relative pt-6">
+              <div className="relative flex items-center justify-between">
+                <div className="absolute top-4 left-0 right-0 h-px bg-border" />
+                {stages.map((stage, index) => {
+                  let status = 'pending';
+                  if (stages.indexOf(app.currentStage) > index) status = 'completed';
+                  else if (stages.indexOf(app.currentStage) === index) status = 'current';
 
-              {/* Horizontal Line */}
-              <div className="absolute top-8 left-0 right-0 h-[3px] bg-gray-200"></div>
-
-              {stages.map((stage, index) => {
-                let status = "pending";
-                if (stages.indexOf(app.currentStage) > index) status = "completed";
-                else if (stages.indexOf(app.currentStage) === index)
-                  status = "current";
-
-                const colors = {
-                  completed: "bg-green-500 text-white",
-                  current: "bg-blue-600 text-white animate-pulse",
-                  pending: "bg-gray-300 text-gray-600",
-                  rejected: "bg-red-500 text-white",
-                };
-
-                return (
-                  <div key={stage} className="flex flex-col items-center w-full z-10">
-                    {/* Circle */}
-                    <div
-                      className={`w-12 h-12 flex items-center justify-center rounded-full font-bold text-md shadow-md ${colors[status]}`}
-                    >
-                      {index + 1}
+                  return (
+                    <div key={stage} className="flex flex-col items-center relative z-10 flex-1">
+                      <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs font-medium border ${status === 'completed' ? 'bg-accent/10 border-accent/30 text-accent' : status === 'current' ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-200 border-border text-text-muted'}`}>
+                        {status === 'completed' ? <CheckCircle2 className="w-4 h-4" /> :
+                         status === 'current' ? <Clock className="w-4 h-4" /> :
+                         index + 1}
+                      </div>
+                      <p className="text-xs text-text-muted mt-2 capitalize">{stage}</p>
                     </div>
-
-                    {/* Label */}
-                    <p className="mt-2 text-sm capitalize text-gray-700">
-                      {stage}
-                    </p>
-
-                    {/* Description */}
-                    <p className="text-xs text-gray-500">
-                      {status === "completed"
-                        ? "Completed"
-                        : status === "current"
-                        ? "In Progress"
-                        : ""}
-                    </p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </StaggerItem>
         ))}
-      </div>
-    </div>
+      </StaggerList>
+    </PageWrapper>
   );
 };
 

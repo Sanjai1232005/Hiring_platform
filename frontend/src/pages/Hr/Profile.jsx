@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { motion } from "framer-motion";
-import BASE_URL from "../../apiConfig";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Mail, Phone, Building2, UserCircle } from 'lucide-react';
+import BASE_URL from '../../apiConfig';
+import Loader from '../../components/ui/Loader';
+import Avatar from '../../components/ui/Avatar';
+import { PageWrapper } from '../../components/animations/pageTransition';
 
 const HrProfilePage = () => {
   const [hrData, setHrData] = useState(null);
@@ -10,98 +14,61 @@ const HrProfilePage = () => {
   useEffect(() => {
     const fetchHrProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(`${BASE_URL}/hr/getProfile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = localStorage.getItem('token');
+        const res = await axios.get(BASE_URL + '/hr/getProfile', {
+          headers: { Authorization: 'Bearer ' + token },
         });
-
         setHrData(res.data);
       } catch (err) {
         console.error(err);
-        alert("Failed to fetch HR profile");
       } finally {
         setLoading(false);
       }
     };
-
     fetchHrProfile();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
-        <p className="text-xl text-blue-700 font-semibold animate-pulse">
-          Loading profile...
-        </p>
-      </div>
-    );
-  }
+  if (loading) return <Loader />;
+  if (!hrData) return <div className="flex items-center justify-center min-h-[60vh] text-text-muted">No HR data found</div>;
 
-  if (!hrData) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
-        <p className="text-xl text-red-600 font-semibold">No HR data found</p>
-      </div>
-    );
-  }
+  const fields = [
+    { icon: Mail, label: 'Email', value: hrData.email },
+    { icon: Phone, label: 'Contact', value: hrData.contact },
+    { icon: Building2, label: 'Company', value: hrData.companyName },
+    { icon: UserCircle, label: 'Position', value: hrData.position },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex justify-center items-center p-6">
-      <motion.div
-        className="max-w-md w-full bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl p-8 border border-white/40 hover:shadow-blue-300 transition duration-300"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        whileHover={{ scale: 1.02 }}
-      >
-        <div className="flex flex-col items-center mb-6">
-          <motion.div
-            className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-md"
-            initial={{ rotate: -10 }}
-            animate={{ rotate: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {hrData.name?.charAt(0).toUpperCase()}
-          </motion.div>
-          <h2 className="text-3xl font-extrabold mt-4 text-indigo-700">
-            {hrData.name}
-          </h2>
-          <p className="text-gray-600">{hrData.position}</p>
-        </div>
-
-        <div className="space-y-3 text-gray-800">
-          <p>
-            <strong className="text-indigo-600">Email:</strong> {hrData.email}
-          </p>
-          <p>
-            <strong className="text-indigo-600">Contact:</strong>{" "}
-            {hrData.contact}
-          </p>
-          <p>
-            <strong className="text-indigo-600">Company:</strong>{" "}
-            {hrData.companyName}
-          </p>
-          <p>
-            <strong className="text-indigo-600">Position:</strong>{" "}
-            {hrData.position}
-          </p>
-        </div>
-
+    <PageWrapper>
+      <div className="max-w-md mx-auto">
         <motion.div
-          className="mt-6 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          className="bg-surface-100 border border-border rounded-lg p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
         >
-          <button className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-6 py-2 rounded-full shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-blue-600 transition-all duration-300">
-            Edit Profile
-          </button>
+          <div className="flex flex-col items-center mb-6">
+            <Avatar name={hrData.name} size="lg" />
+            <h2 className="text-2xl font-bold text-text-primary mt-4">{hrData.name}</h2>
+            <p className="text-text-muted text-sm">{hrData.position}</p>
+          </div>
+
+          <div className="space-y-4">
+            {fields.map((f, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-surface-200 rounded-lg flex items-center justify-center">
+                  <f.icon className="w-4 h-4 text-text-muted" />
+                </div>
+                <div>
+                  <p className="text-xs text-text-muted">{f.label}</p>
+                  <p className="text-sm text-text-primary">{f.value || '—'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </motion.div>
-      </motion.div>
-    </div>
+      </div>
+    </PageWrapper>
   );
 };
 
