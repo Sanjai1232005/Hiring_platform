@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Plus, Mail, Loader2, AlertTriangle } from 'lucide-react';
+import { Plus, Mail, Loader2, AlertTriangle, Code2, ClipboardList } from 'lucide-react';
 import CreateQuestion from '../CreateQuestions';
+import CreateTaskAssessment, { TaskAssessmentList } from '../CreateTaskAssessment';
 import BASE_URL from '../../../apiConfig';
 import Button from '../../../components/ui/Button';
 import Input, { Textarea } from '../../../components/ui/Input';
 
 const CodingTest = ({ job, onStageUpdate }) => {
+  const [assessmentType, setAssessmentType] = useState('coding'); // 'coding' | 'task'
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [showCreateQuestion, setShowCreateQuestion] = useState(false);
+  const [showCreateTask, setShowCreateTask] = useState(false);
   const [email, setEmail] = useState('');
   const [emailDescription, setEmailDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -73,34 +76,88 @@ const CodingTest = ({ job, onStageUpdate }) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-text-primary">Coding Test</h3>
+      <h3 className="text-lg font-semibold text-text-primary">Assessment</h3>
 
-      {/* Questions */}
+      {/* Assessment Type Toggle */}
       <div>
-        <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-3">Questions ({questions.length})</h4>
-        {loadingQuestions ? (
-          <div className="flex items-center gap-2 text-text-muted text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>
-        ) : questions.length === 0 ? (
-          <p className="text-text-muted text-sm mb-3">No questions added yet.</p>
-        ) : (
-          <div className="space-y-2 mb-3">
-            {questions.map((q, index) => (
-              <div key={q._id} className="p-3 bg-surface-200 border border-border rounded-lg">
-                <span className="text-xs text-text-muted">Q{index + 1}</span>
-                <p className="text-sm text-text-primary font-medium">{q.title}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        <Button variant="secondary" size="sm" onClick={() => setShowCreateQuestion(!showCreateQuestion)} icon={Plus}>
-          {showCreateQuestion ? 'Hide Form' : 'Add Question'}
-        </Button>
+        <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-3">Assessment Type</h4>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setAssessmentType('coding')}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+              assessmentType === 'coding'
+                ? 'bg-primary/10 border-primary/30 text-primary ring-1 ring-primary/20'
+                : 'bg-surface-200 border-border text-text-secondary hover:border-border-light'
+            }`}
+          >
+            <Code2 className="w-4 h-4" />
+            Coding Test
+          </button>
+          <button
+            onClick={() => setAssessmentType('task')}
+            className={`flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+              assessmentType === 'task'
+                ? 'bg-primary/10 border-primary/30 text-primary ring-1 ring-primary/20'
+                : 'bg-surface-200 border-border text-text-secondary hover:border-border-light'
+            }`}
+          >
+            <ClipboardList className="w-4 h-4" />
+            Task Assessment
+          </button>
+        </div>
       </div>
 
-      {showCreateQuestion && (
-        <div className="bg-surface-200 border border-border rounded-lg p-4">
-          <CreateQuestion jobId={job._id} onQuestionCreated={() => { setShowCreateQuestion(false); fetchQuestions(); }} />
-        </div>
+      {/* Coding Test Section */}
+      {assessmentType === 'coding' && (
+        <>
+          {/* Questions */}
+          <div>
+            <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-3">Questions ({questions.length})</h4>
+            {loadingQuestions ? (
+              <div className="flex items-center gap-2 text-text-muted text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>
+            ) : questions.length === 0 ? (
+              <p className="text-text-muted text-sm mb-3">No questions added yet.</p>
+            ) : (
+              <div className="space-y-2 mb-3">
+                {questions.map((q, index) => (
+                  <div key={q._id} className="p-3 bg-surface-200 border border-border rounded-lg">
+                    <span className="text-xs text-text-muted">Q{index + 1}</span>
+                    <p className="text-sm text-text-primary font-medium">{q.title}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button variant="secondary" size="sm" onClick={() => setShowCreateQuestion(!showCreateQuestion)} icon={Plus}>
+              {showCreateQuestion ? 'Hide Form' : 'Add Question'}
+            </Button>
+          </div>
+
+          {showCreateQuestion && (
+            <div className="bg-surface-200 border border-border rounded-lg p-4">
+              <CreateQuestion jobId={job._id} onQuestionCreated={() => { setShowCreateQuestion(false); fetchQuestions(); }} />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Task Assessment Section */}
+      {assessmentType === 'task' && (
+        <>
+          <div>
+            <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-3">Task Assessments</h4>
+            <TaskAssessmentList jobId={job._id} />
+          </div>
+
+          <Button variant="secondary" size="sm" onClick={() => setShowCreateTask(!showCreateTask)} icon={Plus}>
+            {showCreateTask ? 'Hide Form' : 'Create Task Assessment'}
+          </Button>
+
+          {showCreateTask && (
+            <div className="bg-surface-200 border border-border rounded-lg p-4">
+              <CreateTaskAssessment jobId={job._id} onTaskCreated={() => setShowCreateTask(false)} />
+            </div>
+          )}
+        </>
       )}
 
       {/* Send Email */}

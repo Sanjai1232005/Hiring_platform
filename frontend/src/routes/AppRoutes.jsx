@@ -22,12 +22,16 @@ import PublicStudentProfile from '../pages/student/PublicStudentProfile';
 import TestGate from '../pages/student/TestGate';
 import TestCodeEditorPage from '../pages/student/CodeEditor';
 import PostJob from '../pages/student/PostJob';
+import StudentTaskAssessment from '../pages/student/TaskAssessment';
+import StudentTaskList from '../pages/student/TaskList';
 
 // HR Pages
 import HrProfilePage from '../pages/Hr/Profile';
 import CreateJobs from '../pages/Hr/CreateJob';
 import HRCreateQuestion from '../pages/Hr/CreateQuestions';
 import HRDashboard from '../pages/Hr/Dashboard';
+import TaskAssessmentPage from '../pages/Hr/TaskAssessmentPage';
+import HRTaskDashboard from '../pages/Hr/HRTaskDashboard';
 
 function AppRoute() {
   return (
@@ -58,6 +62,8 @@ function AppRoute() {
         <Route path="/jobs/:id" element={<JobDetails />} />
         <Route path="/jobs" element={<PostJob />} />
         <Route path="/student/:id" element={<PublicStudentProfile />} />
+        <Route path="/student/task-assessment/:jobId" element={<StudentTaskAssessment />} />
+        <Route path="/student/task-assessment" element={<StudentTaskList />} />
       </Route>
 
       {/* ================= TEST (full-screen, no sidebar) ================= */}
@@ -76,6 +82,8 @@ function AppRoute() {
         <Route path="/hr/profile" element={<HrProfilePage />} />
         <Route path="/hr/create" element={<CreateJobs />} />
         <Route path="/hr/create-question" element={<HRCreateQuestion />} />
+        <Route path="/hr/task-assessment" element={<TaskAssessmentPage />} />
+        <Route path="/hr/task-results" element={<HRTaskDashboard />} />
       </Route>
 
       {/* ================= FALLBACK ================= */}
