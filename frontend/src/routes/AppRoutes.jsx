@@ -25,10 +25,10 @@ import TestCodeEditorPage from "../pages/student/CodeEditor";
 import PostJob from "../pages/student/PostJob";
 
 // HR Pages
-import HrProfilePage from "../pages/hr/Profile";
-import CreateJobs from "../pages/hr/CreateJob";
-import HRCreateQuestion from "../pages/hr/CreateQuestions";
-import HRDashboard from "../pages/hr/Dashboard";
+import HrProfilePage from "../pages/Hr/Profile";
+import CreateJobs from "../pages/Hr/CreateJob";
+import HRCreateQuestion from "../pages/Hr/CreateQuestions";
+import HRDashboard from "../pages/Hr/Dashboard";
 
 
 function AppRoute() {

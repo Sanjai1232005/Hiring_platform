@@ -6,6 +6,7 @@ const studentRoute = require("./routes/student.routes");
 const hrRoute = require("./routes/hr.routes");
 const jobRoute = require("./routes/job.routes");
 const testRoute = require("./routes/test.routes");
+const questionRoute = require("./routes/question.routes");
 const progressRoute = require("./routes/progress.routes");
 const emailRoute = require("./routes/email.routes");
 const authRoute = require("./routes/auth.routes");
@@ -36,7 +37,8 @@ app.use("/api/auth", authRoute);
 app.use("/api/students", studentRoute);
 app.use("/api/hr", hrRoute);
 app.use("/api/job", jobRoute);
-app.use("/api/questions", testRoute);
+app.use("/api/questions", questionRoute);
+app.use("/api/test", testRoute);
 app.use("/api/progress", progressRoute);
 app.use("/api/email", emailRoute);
 

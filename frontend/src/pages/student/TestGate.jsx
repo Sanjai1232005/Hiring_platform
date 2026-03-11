@@ -12,23 +12,7 @@ const TestGate = () => {
     try {
       const decoded = jwtDecode(token);
 
-      const { jobId, userId, startTime, endTime } = decoded;
-      const now = new Date();
-
-      const start = new Date(startTime);
-      const end = new Date(endTime);
-
-    //   // ❌ Too early
-    //   if (now < start) {
-    //     setMessage(`⏳ Test will start at ${start.toLocaleString()}`);
-    //     return;
-    //   }
-
-      // ❌ Too late
-    //   if (now > end) {
-    //     setMessage("❌ Test has already ended");
-    //     return;
-    //   }
+      const { jobId, userId, endTime } = decoded;
 
       // ✅ Allowed → redirect to editor
       navigate(`/students/${jobId}/${userId}`, {
