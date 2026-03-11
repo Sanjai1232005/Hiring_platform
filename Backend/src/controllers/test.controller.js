@@ -7,6 +7,7 @@ require("dotenv").config();
 const axios = require("axios");
 
 const { generateTestEmailTemplate } = require("../controllers/email.controller.js");
+const { advanceCandidateStage } = require('../services/stageTransition.service');
 
 // Language ID map (Judge0 compatible)
 const LANGUAGE_MAP = {
@@ -106,7 +107,7 @@ const evaluateJob = async (req, res) => {
           ? Math.round((correctTestCases / totalTestCases) * 100)
           : 0;
 
-        await ApplicationProgress.findOneAndUpdate(
+        const progress = await ApplicationProgress.findOneAndUpdate(
           { userId, jobId },
           {
             score: scorePercent,
@@ -115,6 +116,11 @@ const evaluateJob = async (req, res) => {
           },
           { upsert: true, new: true }
         );
+
+        // Advance candidate past the coding_test stage
+        if (progress) {
+          try { await advanceCandidateStage(progress._id); } catch (_) { /* already at next stage */ }
+        }
       });
     }
 

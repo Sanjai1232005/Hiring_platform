@@ -10,7 +10,9 @@ const {
   stageChange,
   stageChangeInStudent,
   getJobById,
-  getCurrentStageofStudent
+  getCurrentStageofStudent,
+  reviewCandidate,
+  getCandidateReviewData,
 } = require("../controllers/job.controller");
 
 
@@ -41,6 +43,10 @@ router.get("/students/:jobId", authenticate, getStudentsByJobId);
 router.post("/:jobId/resume-screen", calculateResumeScore);
 
 router.get("/my-applications-stages", authenticate,getCurrentStageofStudent);
+
+// Candidate Review
+router.get("/review-data/:jobId", authenticate, getCandidateReviewData);
+router.post("/review", authenticate, reviewCandidate);
 
 // Get Job by ID
 router.get("/:id", getJobById);

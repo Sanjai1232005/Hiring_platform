@@ -10,6 +10,7 @@ const CreateJobs = () => {
   const [formData, setFormData] = useState({
     title: '', company: '', location: '',
     employmentType: 'Full-Time', experienceLevel: 'Fresher',
+    assessmentStrategy: 'coding_only',
     description: '', responsibilities: [''], requirements: [''], skills: [''],
     salaryRange: { min: '', max: '', currency: 'INR' },
     deadline: '',
@@ -99,6 +100,23 @@ const CreateJobs = () => {
             <Select label="Experience Level" name="experienceLevel" value={formData.experienceLevel} onChange={handleChange}>
               <option>Fresher</option><option>Junior</option><option>Mid-Level</option><option>Senior</option><option>Lead</option>
             </Select>
+          </div>
+
+          <div>
+            <Select label="Assessment Strategy" name="assessmentStrategy" value={formData.assessmentStrategy} onChange={handleChange}>
+              <option value="coding_only">Coding Test Only</option>
+              <option value="task_only">Task Assessment Only</option>
+              <option value="coding_then_task">Coding Test → Task Assessment</option>
+              <option value="task_then_coding">Task Assessment → Coding Test</option>
+              <option value="none">No Assessment</option>
+            </Select>
+            <p className="text-xs text-text-muted mt-1">
+              {formData.assessmentStrategy === 'coding_only' && 'Candidates will complete a coding test only.'}
+              {formData.assessmentStrategy === 'task_only' && 'Candidates will complete a task assessment only.'}
+              {formData.assessmentStrategy === 'coding_then_task' && 'Candidates take a coding test first, then a task assessment.'}
+              {formData.assessmentStrategy === 'task_then_coding' && 'Candidates complete a task assessment first, then a coding test.'}
+              {formData.assessmentStrategy === 'none' && 'No automated assessments — manual screening only.'}
+            </p>
           </div>
 
           <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} required rows={4} placeholder="Job description..." />

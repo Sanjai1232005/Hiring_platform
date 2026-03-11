@@ -118,7 +118,7 @@ const PostJob = () => {
                   ) : <span />}
 
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/jobs/' + job._id)}>
+                    <Button variant="ghost" size="sm" onClick={() => navigate((role === 'hr' ? '/hr/jobs/' : '/jobs/') + job._id)}>
                       Details <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </Button>
                     {role !== 'hr' && (

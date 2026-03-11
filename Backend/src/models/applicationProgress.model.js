@@ -20,10 +20,17 @@ const applicationProgressSchema = new mongoose.Schema({
 
   testScore: Number,             
 
+  pipelineStages: [
+    {
+      name:  { type: String, required: true },
+      label: { type: String, required: true },
+    }
+  ],
+
   currentStage: {
     type: String,
-    enum: ['resume', 'coding', 'interview', 'final', 'rejected'],
-    default: 'resume'
+    enum: ['applied', 'resume_screening', 'resume', 'coding_test', 'coding', 'task_assessment', 'hr_review', 'interview', 'final', 'rejected'],
+    default: 'applied'
   },
 
   isShortlisted: { type: Boolean, default: false }
