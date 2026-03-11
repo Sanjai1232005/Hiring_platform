@@ -111,8 +111,10 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
     }
     return () => {
       clearInterval(timerRef.current);
-      if (ownsStreamRef.current && streamRef.current) {
+      // Always stop all tracks on unmount to prevent camera staying on
+      if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();

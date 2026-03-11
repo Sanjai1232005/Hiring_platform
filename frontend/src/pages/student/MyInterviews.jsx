@@ -6,12 +6,6 @@ import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { PageWrapper, StaggerList, StaggerItem } from '../../components/animations/pageTransition';
 
-const resultVariant = (r) =>
-  r === 'pass' ? 'success' : r === 'fail' ? 'danger' : 'warning';
-
-const resultIcon = (r) =>
-  r === 'pass' ? CheckCircle : r === 'fail' ? XCircle : Clock;
-
 const MyInterviews = () => {
   const [rounds, setRounds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,19 +94,51 @@ const MyInterviews = () => {
                 <div className="divide-y divide-border">
                   {group.rounds.map((round) => {
                     const d = new Date(round.date);
-                    const isPast = d < new Date();
-                    const Icon = resultIcon(round.result);
+                    const now = new Date();
+                    const isPast = d < now;
+                    const hasFeedback = round.feedback && round.feedback.trim() !== '';
+
+                    /* Derive display status:
+                       - future date & pending → Scheduled
+                       - past date & pending & no feedback → Awaiting Feedback
+                       - result is pass/fail (feedback submitted) → show result */
+                    let displayResult;
+                    let displayVariant;
+                    let DisplayIcon;
+
+                    if (round.result === 'pass') {
+                      displayResult = 'PASSED';
+                      displayVariant = 'success';
+                      DisplayIcon = CheckCircle;
+                    } else if (round.result === 'fail') {
+                      displayResult = 'FAILED';
+                      displayVariant = 'danger';
+                      DisplayIcon = XCircle;
+                    } else if (!isPast) {
+                      displayResult = 'SCHEDULED';
+                      displayVariant = 'info';
+                      DisplayIcon = Calendar;
+                    } else {
+                      displayResult = 'AWAITING';
+                      displayVariant = 'warning';
+                      DisplayIcon = Clock;
+                    }
 
                     return (
                       <div key={round._id} className="px-5 py-4 space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Icon className={`w-4 h-4 ${round.result === 'pass' ? 'text-accent' : round.result === 'fail' ? 'text-red-400' : 'text-amber-400'}`} />
+                            <DisplayIcon className={`w-4 h-4 ${
+                              displayVariant === 'success' ? 'text-accent' :
+                              displayVariant === 'danger' ? 'text-red-400' :
+                              displayVariant === 'info' ? 'text-blue-400' :
+                              'text-amber-400'
+                            }`} />
                             <span className="text-sm font-semibold text-text-primary">
                               {round.roundType.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                             </span>
-                            <Badge variant={resultVariant(round.result)} dot>
-                              {round.result.toUpperCase()}
+                            <Badge variant={displayVariant} dot>
+                              {displayResult}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-text-muted">
@@ -136,7 +162,15 @@ const MyInterviews = () => {
                           )}
 
                           {round.result === 'pending' && isPast && (
-                            <span className="text-amber-400 text-xs">Awaiting feedback</span>
+                            <span className="text-amber-400 text-xs">Awaiting feedback from interviewer</span>
+                          )}
+
+                          {round.result === 'pass' && (
+                            <span className="text-accent text-xs">Interview cleared</span>
+                          )}
+
+                          {round.result === 'fail' && (
+                            <span className="text-red-400 text-xs">Did not advance</span>
                           )}
                         </div>
 

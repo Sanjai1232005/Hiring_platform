@@ -53,6 +53,8 @@ async function advanceCandidateStage(applicationId) {
   const previousStage = currentName;
 
   application.currentStage = nextStage;
+  application.markModified('currentStage');
+  application.markModified('pipelineStages');
   await application.save();
 
   return {
@@ -84,6 +86,7 @@ async function moveCandidateToStage(applicationId, targetStage) {
 
   const previousStage = application.currentStage;
   application.currentStage = targetStage;
+  application.markModified('currentStage');
   await application.save();
 
   return { application, previousStage, newStage: targetStage };

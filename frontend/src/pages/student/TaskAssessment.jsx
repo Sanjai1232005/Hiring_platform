@@ -35,6 +35,15 @@ const StudentTaskAssessment = () => {
   const submissionsRef = useRef([]);
   const selectedAssessmentRef = useRef(null);
 
+  // Cleanup all media on unmount (safety net for camera staying on)
+  useEffect(() => {
+    return () => {
+      if (proctoringRef.current?.stop) {
+        proctoringRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -161,7 +170,7 @@ const StudentTaskAssessment = () => {
       // 2) Proctoring analysis (simulated — no video upload)
       // Stop the camera gracefully but skip the slow Cloudinary upload
       if (proctoringRef.current?.stop) {
-        proctoringRef.current.stop().catch(() => {});
+        try { await proctoringRef.current.stop(); } catch (_) {}
       }
       promises.push(
         axios.post(
