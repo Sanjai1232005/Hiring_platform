@@ -2,20 +2,23 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Briefcase, FileText,
-  ChevronLeft, ChevronRight, LogOut, User, Menu, X
+  LayoutDashboard, Briefcase, FileText, ClipboardList,
+  ChevronLeft, ChevronRight, LogOut, User, Menu, X, BarChart3
 } from 'lucide-react';
 
 const studentLinks = [
   { to: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/jobs', label: 'Browse Jobs', icon: Briefcase },
   { to: '/student/profile', label: 'Profile', icon: User },
+  { to: '/student/task-assessment', label: 'Tasks', icon: ClipboardList },
 ];
 
 const hrLinks = [
   { to: '/hr/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/jobs', label: 'Browse Jobs', icon: Briefcase },
   { to: '/hr/create', label: 'Create Job', icon: FileText },
+  { to: '/hr/task-assessment', label: 'Task Assessment', icon: ClipboardList },
+  { to: '/hr/task-results', label: 'Task Results', icon: BarChart3 },
   { to: '/hr/profile', label: 'Profile', icon: User },
 ];
 

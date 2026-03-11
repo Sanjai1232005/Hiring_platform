@@ -11,6 +11,8 @@ const uploadToCloudinary = async (file, type = "image") => {
   const url =
     type === "image"
       ? "https://api.cloudinary.com/v1_1/dznnyaj0z/image/upload"
+      : type === "video"
+      ? "https://api.cloudinary.com/v1_1/dznnyaj0z/video/upload"
       : "https://api.cloudinary.com/v1_1/dznnyaj0z/raw/upload";
 
   const res = await axios.post(url, data, {

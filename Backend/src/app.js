@@ -10,6 +10,7 @@ const questionRoute = require("./routes/question.routes");
 const progressRoute = require("./routes/progress.routes");
 const emailRoute = require("./routes/email.routes");
 const authRoute = require("./routes/auth.routes");
+const taskRoute = require("./routes/task.routes");
 
 // Middlewares
 const logger = require("./utils/logger");
@@ -41,6 +42,7 @@ app.use("/api/questions", questionRoute);
 app.use("/api/test", testRoute);
 app.use("/api/progress", progressRoute);
 app.use("/api/email", emailRoute);
+app.use("/api/tasks", taskRoute);
 
 // Health check
 app.get("/", (req, res) => {
