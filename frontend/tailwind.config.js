@@ -26,6 +26,22 @@ module.exports = {
           DEFAULT: '#22c55e',
           hover: '#16a34a',
         },
+        cyan: {
+          DEFAULT: '#06b6d4',
+          light: '#22d3ee',
+        },
+        amber: {
+          DEFAULT: '#f59e0b',
+          light: '#fbbf24',
+        },
+        rose: {
+          DEFAULT: '#f43f5e',
+          light: '#fb7185',
+        },
+        violet: {
+          DEFAULT: '#8b5cf6',
+          light: '#a78bfa',
+        },
         text: {
           primary: '#ffffff',
           secondary: '#a1a1aa',
@@ -58,11 +74,23 @@ module.exports = {
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
+        'float': 'float 6s ease-in-out infinite',
+        'float-delayed': 'float 6s ease-in-out 3s infinite',
+        'spin-slow': 'spin 20s linear infinite',
+        'shimmer': 'shimmer 2.5s linear infinite',
       },
       keyframes: {
         gradient: {
           '0%, 100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
         fadeIn: {
           '0%': { opacity: '0' },
