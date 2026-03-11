@@ -32,6 +32,7 @@ import HRCreateQuestion from '../pages/Hr/CreateQuestions';
 import HRDashboard from '../pages/Hr/Dashboard';
 import TaskAssessmentPage from '../pages/Hr/TaskAssessmentPage';
 import HRTaskDashboard from '../pages/Hr/HRTaskDashboard';
+import CandidateReviewPanel from '../pages/Hr/CandidateReviewPanel';
 
 function AppRoute() {
   return (
@@ -84,6 +85,9 @@ function AppRoute() {
         <Route path="/hr/create-question" element={<HRCreateQuestion />} />
         <Route path="/hr/task-assessment" element={<TaskAssessmentPage />} />
         <Route path="/hr/task-results" element={<HRTaskDashboard />} />
+        <Route path="/hr/candidate-review" element={<CandidateReviewPanel />} />
+        <Route path="/hr/jobs" element={<PostJob />} />
+        <Route path="/hr/jobs/:id" element={<JobDetails />} />
       </Route>
 
       {/* ================= FALLBACK ================= */}

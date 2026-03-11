@@ -3,6 +3,8 @@ const TaskSubmission = require("../models/taskSubmission.model");
 const ProctoringRecording = require("../models/proctoringRecording.model");
 const ExplanationRecording = require("../models/explanationRecording.model");
 const ExplanationAnalysis = require("../models/explanationAnalysis.model");
+const ApplicationProgress = require("../models/applicationProgress.model");
+const { advanceCandidateStage } = require("../services/stageTransition.service");
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
@@ -113,6 +115,12 @@ exports.submitTaskAssessment = async (req, res, next) => {
       },
       { upsert: true, new: true, runValidators: true }
     );
+
+    // Advance candidate past the task_assessment stage
+    const progress = await ApplicationProgress.findOne({ userId: candidateId, jobId });
+    if (progress) {
+      try { await advanceCandidateStage(progress._id); } catch (_) { /* already advanced */ }
+    }
 
     res.status(201).json({ success: true, data: submission });
   } catch (error) {

@@ -66,11 +66,16 @@ exports.updateHRProfile = async (req, res) => {
 
 
 //Hr create a Job
+const VALID_STRATEGIES = ['coding_only', 'task_only', 'coding_then_task', 'task_then_coding', 'none'];
+
 exports.createJob = async(req, res) => {
   try {
     const jobData = req.body;
 
-    // Validate job data
+    if (jobData.assessmentStrategy && !VALID_STRATEGIES.includes(jobData.assessmentStrategy)) {
+      return res.status(400).json({ success: false, message: 'Invalid assessment strategy' });
+    }
+
     jobData.postedBy = req.user.userId;
 
     const job = await Job.create(jobData);
