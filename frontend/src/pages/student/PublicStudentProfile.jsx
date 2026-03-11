@@ -1,177 +1,143 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import {
-  Avatar,
-  Box,
-  Typography,
-  Chip,
-  Link,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-} from "@mui/material";
-import { useParams } from "react-router-dom";
-import Loader from "../../components/common/Loader";
-import API from "../../apiConfig";
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { MapPin, GraduationCap, Linkedin, Github, Globe, ExternalLink } from 'lucide-react';
+import API from '../../apiConfig';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
+import Loader from '../../components/ui/Loader';
+import { PageWrapper, StaggerList, StaggerItem } from '../../components/animations/pageTransition';
 
 const PublicStudentProfile = () => {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchPublicProfile = async () => {
-    try {
-      const res = await axios.get(`${API}/students/getProfile/${id}`);
-      setStudent(res.data);
-    } catch (err) {
-      console.error("Public profile fetch failed", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchPublicProfile = async () => {
+      try {
+        const res = await axios.get(API + '/students/getProfile/' + id);
+        setStudent(res.data);
+      } catch (err) {
+        console.error('Public profile fetch failed', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchPublicProfile();
   }, [id]);
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" minHeight="100vh">
-        <Loader />
-      </Box>
-    );
-  }
-
-  if (!student) {
-    return <Typography textAlign="center">Profile not found</Typography>;
-  }
+  if (loading) return <Loader />;
+  if (!student) return <div className="flex items-center justify-center min-h-screen text-text-muted">Profile not found</div>;
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        py: 5,
-        px: { xs: 2, sm: 4 },
-        background: "linear-gradient(to bottom right, #f5f7fa, #e6ecf5)",
-      }}
-    >
-      <Paper
-        elevation={6}
-        sx={{
-          maxWidth: 950,
-          mx: "auto",
-          p: 4,
-          borderRadius: 4,
-        }}
-      >
+    <PageWrapper>
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <Box display="flex" alignItems="center" gap={3} mb={4}>
-          <Avatar
-            src={student.profilePhoto}
-            sx={{ width: 110, height: 110 }}
-          />
-          <Box>
-            <Typography variant="h5" fontWeight="bold">
-              {student.name}
-            </Typography>
-            <Typography color="text.secondary">{student.location}</Typography>
-          </Box>
-        </Box>
+        <div className="bg-surface-100 border border-border rounded-lg p-6 mb-5">
+          <div className="flex items-center gap-4">
+            <Avatar src={student.profilePhoto} name={student.name} size="lg" />
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary">{student.name}</h1>
+              {student.location && (
+                <p className="text-text-muted flex items-center gap-1.5 mt-1 text-sm">
+                  <MapPin className="w-4 h-4" /> {student.location}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
 
-        {/* Sections */}
-        {[
-          {
-            title: "Education",
-            content: (
-              <>
-                <Typography fontWeight="medium">
-                  {student.degree} - {student.branch}
-                </Typography>
-                <Typography color="text.secondary">
-                  {student.college} ({student.graduationYear})
-                </Typography>
-              </>
-            ),
-          },
-          {
-            title: "Skills",
-            content: (
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {student.skills?.map((skill, i) => (
-                  <Chip key={i} label={skill} />
-                ))}
-              </Box>
-            ),
-          },
-          {
-            title: "About",
-            content: (
-              <Typography>
-                {student.about || "No information provided."}
-              </Typography>
-            ),
-          },
-          {
-            title: "Projects",
-            content: student.projects?.length ? (
-              <List>
-                {student.projects.map((p, i) => (
-                  <ListItem key={i}>
-                    <ListItemText
-                      primary={p.title}
-                      secondary={
-                        <>
-                          <Typography variant="body2">
-                            {p.description}
-                          </Typography>
-                          {p.githubLink && (
-                            <Link href={p.githubLink} target="_blank">
-                              GitHub
-                            </Link>
-                          )}
-                        </>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Typography>No projects</Typography>
-            ),
-          },
-          {
-            title: "Social Links",
-            content: (
-              <Box display="flex" gap={3}>
-                {student.socialLinks?.linkedin && (
-                  <Link href={student.socialLinks.linkedin} target="_blank">
-                    LinkedIn
-                  </Link>
-                )}
-                {student.socialLinks?.github && (
-                  <Link href={student.socialLinks.github} target="_blank">
-                    GitHub
-                  </Link>
-                )}
-                {student.socialLinks?.portfolio && (
-                  <Link href={student.socialLinks.portfolio} target="_blank">
-                    Portfolio
-                  </Link>
-                )}
-              </Box>
-            ),
-          },
-        ].map((section, i) => (
-          <Paper key={i} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" mb={1} fontWeight="bold">
-              {section.title}
-            </Typography>
-            {section.content}
-          </Paper>
-        ))}
-      </Paper>
-    </Box>
+        <StaggerList className="space-y-4">
+          {/* Education */}
+          <StaggerItem>
+            <div className="bg-surface-100 border border-border rounded-lg p-5">
+              <h2 className="text-base font-semibold text-text-primary mb-3 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-primary" /> Education
+              </h2>
+              <p className="text-text-primary font-medium">{student.degree} - {student.branch}</p>
+              <p className="text-text-muted text-sm">{student.college} ({student.graduationYear})</p>
+            </div>
+          </StaggerItem>
+
+          {/* Skills */}
+          {student.skills?.length > 0 && (
+            <StaggerItem>
+              <div className="bg-surface-100 border border-border rounded-lg p-5">
+                <h2 className="text-base font-semibold text-text-primary mb-3">Skills</h2>
+                <div className="flex flex-wrap gap-2">
+                  {student.skills.map((skill, i) => (
+                    <Badge key={i} variant="default">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+            </StaggerItem>
+          )}
+
+          {/* About */}
+          {student.about && (
+            <StaggerItem>
+              <div className="bg-surface-100 border border-border rounded-lg p-5">
+                <h2 className="text-base font-semibold text-text-primary mb-3">About</h2>
+                <p className="text-text-secondary text-sm leading-relaxed">{student.about}</p>
+              </div>
+            </StaggerItem>
+          )}
+
+          {/* Projects */}
+          {student.projects?.length > 0 && (
+            <StaggerItem>
+              <div className="bg-surface-100 border border-border rounded-lg p-5">
+                <h2 className="text-base font-semibold text-text-primary mb-3">Projects</h2>
+                <div className="space-y-3">
+                  {student.projects.map((p, i) => (
+                    <div key={i} className="bg-surface-200 rounded-lg p-3">
+                      <p className="text-text-primary font-medium">{p.title}</p>
+                      <p className="text-text-muted text-sm mt-1">{p.description}</p>
+                      {p.githubLink && (
+                        <a href={p.githubLink} target="_blank" rel="noopener noreferrer"
+                           className="inline-flex items-center gap-1 text-primary text-sm mt-2 hover:underline">
+                          <ExternalLink className="w-3.5 h-3.5" /> View on GitHub
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </StaggerItem>
+          )}
+
+          {/* Social */}
+          {(student.socialLinks?.linkedin || student.socialLinks?.github || student.socialLinks?.portfolio) && (
+            <StaggerItem>
+              <div className="bg-surface-100 border border-border rounded-lg p-5">
+                <h2 className="text-base font-semibold text-text-primary mb-3">Links</h2>
+                <div className="flex gap-4">
+                  {student.socialLinks.linkedin && (
+                    <a href={student.socialLinks.linkedin} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-1.5 text-sm text-text-muted hover:text-primary transition-colors">
+                      <Linkedin className="w-4 h-4" /> LinkedIn
+                    </a>
+                  )}
+                  {student.socialLinks.github && (
+                    <a href={student.socialLinks.github} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-1.5 text-sm text-text-muted hover:text-primary transition-colors">
+                      <Github className="w-4 h-4" /> GitHub
+                    </a>
+                  )}
+                  {student.socialLinks.portfolio && (
+                    <a href={student.socialLinks.portfolio} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-1.5 text-sm text-text-muted hover:text-primary transition-colors">
+                      <Globe className="w-4 h-4" /> Portfolio
+                    </a>
+                  )}
+                </div>
+              </div>
+            </StaggerItem>
+          )}
+        </StaggerList>
+      </div>
+    </PageWrapper>
   );
 };
 

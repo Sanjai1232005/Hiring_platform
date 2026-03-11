@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { Eye, Loader2, CheckSquare } from 'lucide-react';
+import BASE_URL from '../../../apiConfig';
+import Button from '../../../components/ui/Button';
+import Badge from '../../../components/ui/Badge';
 
-import BASE_URL from "../../../apiConfig";
-
-const ResumeScreening = ({ job }) => {
+const ProfileReview = ({ job }) => {
   const [applicants, setApplicants] = useState([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -14,29 +16,21 @@ const ResumeScreening = ({ job }) => {
 
   useEffect(() => {
     if (!job) return;
-
     const fetchApplicants = async () => {
       try {
         setLoadingApplicants(true);
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${BASE_URL}/job/students/${job._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = localStorage.getItem('token');
+        const res = await axios.get(BASE_URL + '/job/students/' + job._id, {
+          headers: { Authorization: 'Bearer ' + token },
         });
-
-        // ✅ Sort applicants by resumeScore in descending order
-        const sortedApplicants = (res.data || []).sort(
-          (a, b) => b.resumeScore - a.resumeScore
-        );
-
-        setApplicants(sortedApplicants);
+        const sorted = (res.data || []).sort((a, b) => b.resumeScore - a.resumeScore);
+        setApplicants(sorted);
       } catch (err) {
-        console.error("Error fetching applicants:", err);
-        alert("Failed to fetch applicants");
+        console.error('Error fetching applicants:', err);
       } finally {
         setLoadingApplicants(false);
       }
     };
-
     fetchApplicants();
   }, [job]);
 
@@ -47,127 +41,97 @@ const ResumeScreening = ({ job }) => {
 
   const handleToggleStudent = (studentId) => {
     setSelectedStudents((prev) =>
-      prev.includes(studentId)
-        ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId]
+      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
     );
   };
 
   const handleConfirmSelection = async () => {
     if (!job || selectedStudents.length === 0) {
-      alert("Please select at least one student.");
+      alert('Please select at least one student.');
       return;
     }
-
     setProcessing(true);
     try {
-      const token = localStorage.getItem("token");
-
-      // ✅ Update job stage
-      await axios.post(
-        `${BASE_URL}/job/${job._id}/stageChange`,
-        { stage: "coding" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // ✅ Update selected students' stages
-      await axios.post(
-        `${BASE_URL}/job/${job._id}/stageChangeInStudent`,
-        { studentIds: selectedStudents, stage: "coding" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      alert("Selection confirmed and stages updated!");
+      const token = localStorage.getItem('token');
+      await axios.post(BASE_URL + '/job/' + job._id + '/stageChange', { stage: 'coding' }, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      await axios.post(BASE_URL + '/job/' + job._id + '/stageChangeInStudent', { studentIds: selectedStudents, stage: 'coding' }, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      alert('Selection confirmed and stages updated!');
       setSelectedStudents([]);
     } catch (err) {
-      console.error("Error confirming selection:", err);
-      alert("Failed to update stages.");
+      console.error('Error confirming selection:', err);
+      alert('Failed to update stages.');
     } finally {
       setProcessing(false);
     }
   };
 
+  if (!job) return <p className="text-text-muted">No job selected.</p>;
+
   return (
-    <div className="p-4">
-      <h3 className="text-xl font-bold mb-4">Resume Screening</h3>
-      {job ? (
-        <>
-          <p>Total Applicants: <strong>{applicants.length}</strong></p>
+    <div>
+      <h3 className="text-lg font-semibold text-text-primary mb-1">Profile Review</h3>
+      <p className="text-text-muted text-sm mb-4">Total Applicants: {applicants.length}</p>
 
-          <div className="mb-4">
-            <input
-              type="number"
-              min="1"
-              max={applicants.length}
-              value={selectCount}
-              onChange={(e) => setSelectCount(Number(e.target.value))}
-              placeholder="Enter number of students to select"
-              className="border p-1 mr-2"
-            />
-            <button
-              onClick={handleSelectTopStudents}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Select Top Students
-            </button>
-          </div>
+      {/* Quick select */}
+      <div className="flex items-center gap-3 mb-5">
+        <input
+          type="number" min="1" max={applicants.length} value={selectCount}
+          onChange={(e) => setSelectCount(Number(e.target.value))}
+          placeholder="Top N"
+          className="w-24 px-3 py-2 bg-surface-200 border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:border-primary/50 transition-colors"
+        />
+        <Button variant="secondary" size="sm" onClick={handleSelectTopStudents}>Select Top</Button>
+      </div>
 
-          <div>
-            <h4 className="text-lg font-semibold mb-2">Or select manually:</h4>
-            {loadingApplicants ? (
-              <p>⏳ Loading applicants...</p>
-            ) : applicants.length === 0 ? (
-              <p>No applicants found.</p>
-            ) : (
-              <ul className="space-y-2 max-h-64 overflow-auto">
-                {applicants.map((student) => (
-                  <li
-  key={student._id}
-  className="flex items-center justify-between p-3 border rounded-lg bg-white hover:shadow transition"
->
-  {/* Left: Info */}
-  <div>
-    <p className="font-semibold text-gray-900">
-      {student.userId?.name}
-    </p>
-    <p className="text-sm text-gray-600">
-      📧 {student.userId?.email}
-    </p>
-    <p className="text-sm text-gray-700">
-      Resume Score:{" "}
-      <span className="font-medium text-blue-600">
-        {student.resumeScore ?? "N/A"}
-      </span>
-    </p>
-  </div>
-
-  {/* Right: Actions */}
-  <button
-    onClick={() => navigate(`/student/${student.userId?._id}`)}
-    className="px-3 py-1.5 text-sm border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
-  >
-    View Profile
-  </button>
-</li>
-
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <button
-            onClick={handleConfirmSelection}
-            disabled={processing || selectedStudents.length === 0}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {processing ? "Processing..." : "Confirm Selection"}
-          </button>
-        </>
+      {/* List */}
+      {loadingApplicants ? (
+        <div className="flex items-center gap-2 text-text-muted text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>
+      ) : applicants.length === 0 ? (
+        <p className="text-text-muted text-sm">No applicants found.</p>
       ) : (
-        <p>No job selected.</p>
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {applicants.map((student) => (
+            <div key={student._id}
+              onClick={() => handleToggleStudent(student._id)}
+              className={'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ' +
+                (selectedStudents.includes(student._id)
+                  ? 'bg-primary/10 border-primary/30'
+                  : 'bg-surface-200 border-border hover:border-border-light')}>
+              <div className="flex items-center gap-3">
+                <div className={'w-5 h-5 rounded border flex items-center justify-center transition-colors ' +
+                  (selectedStudents.includes(student._id) ? 'bg-primary border-primary text-white' : 'border-border')}>
+                  {selectedStudents.includes(student._id) && <CheckSquare className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-text-primary">{student.userId?.name}</p>
+                  <p className="text-xs text-text-muted">{student.userId?.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={student.resumeScore >= 70 ? 'success' : student.resumeScore >= 40 ? 'warning' : 'danger'}>
+                  Score: {student.resumeScore ?? 'N/A'}
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate('/student/' + student.userId?._id); }} icon={Eye}>
+                  View
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedStudents.length > 0 && (
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-sm text-text-muted">{selectedStudents.length} selected</span>
+          <Button onClick={handleConfirmSelection} loading={processing}>Confirm Selection</Button>
+        </div>
       )}
     </div>
   );
 };
 
-export default ResumeScreening;
+export default ProfileReview;

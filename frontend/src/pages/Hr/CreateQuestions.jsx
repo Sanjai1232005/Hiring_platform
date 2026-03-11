@@ -1,15 +1,17 @@
-import axios from "axios";
-import { useState } from "react";
-import API from "../../apiConfig";
+import axios from 'axios';
+import { useState } from 'react';
+import { Plus, Eye, EyeOff, Send } from 'lucide-react';
+import API from '../../apiConfig';
+import Input, { Textarea } from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
 
 export default function CreateQuestion({ jobId }) {
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
   const [marks, setMarks] = useState(100);
-  const [testCases, setTestCases] = useState([{ input: "", output: "", hidden: false }]);
+  const [testCases, setTestCases] = useState([{ input: '', output: '', hidden: false }]);
 
-  const addTC = () =>
-    setTestCases([...testCases, { input: "", output: "", hidden: false }]);
+  const addTC = () => setTestCases([...testCases, { input: '', output: '', hidden: false }]);
 
   const updateTC = (i, key, val) => {
     const copy = [...testCases];
@@ -18,112 +20,67 @@ export default function CreateQuestion({ jobId }) {
   };
 
   const handleSubmit = async () => {
-  if (!jobId) return alert("JobId missing!");
-  const payload = { jobId, title, description: desc, marks, testCases };
-
-  try {
-    // Step 1: Create the question
-    const res = await axios.post(
-    `${API}/questions/create`,
-      payload
-    );
-
-    alert("Question created: " + res.data._id);
-  } catch (err) {
-    alert("Error: " + err.message);
-  }
-};
-
+    if (!jobId) return alert('JobId missing!');
+    const payload = { jobId, title, description: desc, marks, testCases };
+    try {
+      const res = await axios.post(API + '/questions/create', payload);
+      alert('Question created: ' + res.data._id);
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-6 mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">HR - Create Question</h2>
+    <div className="space-y-5">
+      <h2 className="text-lg font-semibold text-text-primary">Create Question</h2>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Job ID</label>
-        <input
-          className="w-full border border-gray-300 rounded-lg p-2 mt-1 bg-gray-100"
-          value={jobId || ""}
-          readOnly
-        />
+      <div className="bg-surface-200 rounded-lg p-3 text-sm">
+        <span className="text-text-muted">Job ID:</span>{' '}
+        <span className="text-text-secondary font-mono">{jobId || '—'}</span>
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Title</label>
-        <input
-          className="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          className="w-full border border-gray-300 rounded-lg p-2 mt-1 h-28 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Marks</label>
-        <input
-          type="number"
-          className="w-32 border border-gray-300 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={marks}
-          onChange={(e) => setMarks(e.target.value)}
-        />
-      </div>
-
-      <h4 className="text-lg font-semibold text-gray-800 mb-2">Test Cases</h4>
-      {testCases.map((tc, i) => (
-        <div key={i} className="border border-gray-200 rounded-xl p-4 mb-3 bg-gray-50 shadow-sm">
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-600">Input</label>
-            <textarea
-              className="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={tc.input}
-              onChange={(e) => updateTC(i, "input", e.target.value)}
-            />
-          </div>
-
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-600">Output</label>
-            <textarea
-              className="w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={tc.output}
-              onChange={(e) => updateTC(i, "output", e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={tc.hidden}
-              onChange={(e) => updateTC(i, "hidden", e.target.checked)}
-              className="h-4 w-4 text-blue-600"
-            />
-            <label className="text-sm text-gray-700">Hidden</label>
-          </div>
-        </div>
-      ))}
-
-      <button
-        onClick={addTC}
-        className="bg-green-500 text-white px-4 py-2 rounded-xl shadow hover:bg-green-600 transition mb-4"
-      >
-        Add Test Case
-      </button>
+      <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Two Sum, Reverse String..." />
+      <Textarea label="Description" value={desc} onChange={(e) => setDesc(e.target.value)} rows={4} placeholder="Problem description..." />
+      <Input label="Marks" type="number" value={marks} onChange={(e) => setMarks(e.target.value)} />
 
       <div>
-        <button
-          onClick={handleSubmit}
-          className="bg-blue-600 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 transition"
-        >
-          Create Question
+        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-3">Test Cases</h3>
+        <div className="space-y-3">
+          {testCases.map((tc, i) => (
+            <div key={i} className="bg-surface-200 border border-border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-text-muted">Test Case {i + 1}</span>
+                <button
+                  onClick={() => updateTC(i, 'hidden', !tc.hidden)}
+                  className="flex items-center gap-1 text-xs text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  {tc.hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {tc.hidden ? 'Hidden' : 'Visible'}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Input</label>
+                  <textarea value={tc.input} onChange={(e) => updateTC(i, 'input', e.target.value)}
+                    className="w-full px-3 py-2 bg-surface-100 border border-border rounded-lg text-sm text-text-primary font-mono focus:outline-none focus:border-primary/50 transition-colors resize-none" rows={2} />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Expected Output</label>
+                  <textarea value={tc.output} onChange={(e) => updateTC(i, 'output', e.target.value)}
+                    className="w-full px-3 py-2 bg-surface-100 border border-border rounded-lg text-sm text-text-primary font-mono focus:outline-none focus:border-primary/50 transition-colors resize-none" rows={2} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={addTC}
+          className="flex items-center gap-1 text-sm text-accent hover:text-accent/80 mt-3 transition-colors">
+          <Plus className="w-3.5 h-3.5" /> Add Test Case
         </button>
       </div>
+
+      <Button onClick={handleSubmit} icon={Send}>Create Question</Button>
     </div>
   );
 }

@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import {
-  Box,
-  TextField,
-  Typography,
-  Button,
-  CircularProgress,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import API from "../../apiConfig";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { Save } from 'lucide-react';
+import API from '../../apiConfig';
+import Input from '../../components/ui/Input';
+import { Textarea } from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
+import { PageWrapper } from '../../components/animations/pageTransition';
+import { Spinner } from '../../components/ui/Loader';
 
 const EditProfile = () => {
   const [student, setStudent] = useState(null);
@@ -16,21 +15,20 @@ const EditProfile = () => {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API}/students/getProfile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStudent(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(API + '/students/getProfile', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        setStudent(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProfile();
   }, []);
 
@@ -41,79 +39,47 @@ const EditProfile = () => {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        "http://localhost:5000/api/students/updateProfile",
-        student,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      navigate("/student/profile");
+      const token = localStorage.getItem('token');
+      await axios.put('http://localhost:5000/api/students/updateProfile', student, {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      navigate('/student/profile');
     } catch (err) {
-      console.error("Update failed", err);
+      console.error('Update failed', err);
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <CircularProgress sx={{ mt: 5 }} />;
-  if (!student) return <Typography mt={5}>No profile data found.</Typography>;
+  if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
+  if (!student) return <p className="text-text-secondary py-10">No profile data found.</p>;
 
   return (
-    <Box maxWidth={600} mx="auto" mt={4} p={3} boxShadow={3} borderRadius={2}>
-      <Typography variant="h5" mb={2}>Edit Profile</Typography>
+    <PageWrapper>
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-text-primary">Edit Profile</h1>
+          <p className="text-text-secondary mt-1">Update your information below.</p>
+        </div>
 
-      <TextField
-        fullWidth
-        label="Name"
-        name="name"
-        value={student.name || ""}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Email"
-        name="email"
-        value={student.email || ""}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Phone"
-        name="phone"
-        value={student.phone || ""}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Location"
-        name="location"
-        value={student.location || ""}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="About"
-        name="about"
-        value={student.about || ""}
-        onChange={handleChange}
-        multiline
-        rows={4}
-        margin="normal"
-      />
+        <div className="bg-surface-100 border border-border rounded-lg p-6 space-y-4">
+          <Input label="Name" name="name" value={student.name || ''} onChange={handleChange} />
+          <Input label="Email" name="email" type="email" value={student.email || ''} onChange={handleChange} />
+          <Input label="Phone" name="phone" value={student.phone || ''} onChange={handleChange} />
+          <Input label="Location" name="location" value={student.location || ''} onChange={handleChange} />
+          <Textarea label="About" name="about" value={student.about || ''} onChange={handleChange} rows={4} />
 
-      <Button
-        variant="contained"
-        onClick={handleSubmit}
-        disabled={saving}
-        sx={{ mt: 2 }}
-      >
-        {saving ? "Saving..." : "Save Changes"}
-      </Button>
-    </Box>
+          <div className="flex gap-3 pt-4 border-t border-border">
+            <Button onClick={handleSubmit} loading={saving} icon={Save}>
+              Save Changes
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/student/profile')}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </PageWrapper>
   );
 };
 
