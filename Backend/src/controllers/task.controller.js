@@ -29,6 +29,11 @@ exports.createTaskAssessment = async (req, res, next) => {
           message: "Each task must have title, description, expectedDeliverable, and timeLimit.",
         });
       }
+      // Sanitise array fields
+      if (task.requirements && !Array.isArray(task.requirements)) task.requirements = [];
+      if (task.evaluationCriteria && !Array.isArray(task.evaluationCriteria)) task.evaluationCriteria = [];
+      if (task.techStack && !Array.isArray(task.techStack)) task.techStack = [];
+      if (task.resources && !Array.isArray(task.resources)) task.resources = [];
     }
 
     const assessment = await TaskAssessment.create({

@@ -13,6 +13,7 @@ const {
   getCurrentStageofStudent,
   reviewCandidate,
   getCandidateReviewData,
+  getDashboardStats,
 } = require("../controllers/job.controller");
 
 
@@ -35,6 +36,7 @@ router.post("/:jobId/stageChangeInStudent", authenticate, stageChangeInStudent);
 // Fetch Jobs
 router.get("/alljob", fetchAllJob);
 router.get("/getjobs", authenticate, getJobsByHRId);
+router.get("/dashboard-stats", authenticate, getDashboardStats);
 
 // Fetch Students (ONLY ONE ROUTE)
 router.get("/students/:jobId", authenticate, getStudentsByJobId);

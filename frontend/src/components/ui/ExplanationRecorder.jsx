@@ -11,12 +11,16 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
   const streamRef = useRef(null);
   const ownsStreamRef = useRef(false); // true if we created the stream ourselves
   const chunksRef = useRef([]);
+  const mediaStreamRef = useRef(mediaStream);
   const timerRef = useRef(null);
 
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [finished, setFinished] = useState(false);
   const [warning, setWarning] = useState('');
+
+  // Keep mediaStream ref in sync with prop
+  useEffect(() => { mediaStreamRef.current = mediaStream; }, [mediaStream]);
 
   const formatTime = (secs) => {
     const m = Math.floor(secs / 60);
@@ -30,9 +34,9 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
       setWarning('');
 
       let stream;
-      if (mediaStream) {
+      if (mediaStreamRef.current) {
         // Reuse existing proctoring stream — do not stop it on cleanup
-        stream = mediaStream;
+        stream = mediaStreamRef.current;
         ownsStreamRef.current = false;
       } else {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -42,6 +46,7 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
       }
 
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
@@ -111,8 +116,8 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
     }
     return () => {
       clearInterval(timerRef.current);
-      // Always stop all tracks on unmount to prevent camera staying on
-      if (streamRef.current) {
+      // Only stop tracks if we created the stream ourselves — never kill the shared proctoring stream
+      if (ownsStreamRef.current && streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       }
@@ -178,6 +183,7 @@ const ExplanationRecorder = ({ active, onRecordingComplete, mediaStream }) => {
           muted
           playsInline
           className="w-full h-full object-cover"
+          style={{ transform: 'scaleX(-1)' }}
         />
 
         {/* Recording badge */}

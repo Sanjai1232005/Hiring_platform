@@ -5,7 +5,13 @@ const hrProfileSchema = new mongoose.Schema({
 
   companyName: String,
   position: String,
+  department: String,
   contact: String,
+  location: String,
+  bio: String,
+  linkedin: String,
+  avatar: String,
+  skills: [String],
 }, { timestamps: true });
 
 module.exports = mongoose.model("HrProfile", hrProfileSchema);
