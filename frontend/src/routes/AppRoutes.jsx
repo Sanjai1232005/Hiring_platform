@@ -35,6 +35,10 @@ import TaskAssessmentPage from '../pages/Hr/TaskAssessmentPage';
 import HRTaskDashboard from '../pages/Hr/HRTaskDashboard';
 import CandidateReviewPanel from '../pages/Hr/CandidateReviewPanel';
 import InterviewManager from '../pages/Hr/InterviewManager';
+import TeamFormingPage from '../pages/Hr/TeamFormingPage';
+import TeamPerformancePage from '../pages/Hr/TeamPerformancePage';
+import RoleInsightsPage from '../pages/Hr/RoleInsightsPage';
+import MyRoleDNA from '../pages/student/MyRoleDNA';
 
 function AppRoute() {
   return (
@@ -68,6 +72,7 @@ function AppRoute() {
         <Route path="/student/task-assessment/:jobId" element={<StudentTaskAssessment />} />
         <Route path="/student/task-assessment" element={<StudentTaskList />} />
         <Route path="/student/interviews" element={<MyInterviews />} />
+        <Route path="/student/role-dna" element={<MyRoleDNA />} />
       </Route>
 
       {/* ================= TEST (full-screen, no sidebar) ================= */}
@@ -90,6 +95,9 @@ function AppRoute() {
         <Route path="/hr/task-results" element={<HRTaskDashboard />} />
         <Route path="/hr/candidate-review" element={<CandidateReviewPanel />} />
         <Route path="/hr/interviews" element={<InterviewManager />} />
+        <Route path="/hr/team-forming" element={<TeamFormingPage />} />
+        <Route path="/hr/team-performance" element={<TeamPerformancePage />} />
+        <Route path="/hr/role-insights" element={<RoleInsightsPage />} />
         <Route path="/hr/jobs" element={<PostJob />} />
         <Route path="/hr/jobs/:id" element={<JobDetails />} />
       </Route>

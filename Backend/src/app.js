@@ -12,6 +12,8 @@ const emailRoute = require("./routes/email.routes");
 const authRoute = require("./routes/auth.routes");
 const taskRoute = require("./routes/task.routes");
 const interviewRoute = require("./routes/interview.routes");
+const teamRoute = require("./routes/team.routes");
+const rolefitRoute = require("./routes/rolefit.routes");
 
 // Middlewares
 const logger = require("./utils/logger");
@@ -45,6 +47,8 @@ app.use("/api/progress", progressRoute);
 app.use("/api/email", emailRoute);
 app.use("/api/tasks", taskRoute);
 app.use("/api/interview", interviewRoute);
+app.use("/api/teams", teamRoute);
+app.use("/api/rolefit", rolefitRoute);
 
 // Health check
 app.get("/", (req, res) => {
