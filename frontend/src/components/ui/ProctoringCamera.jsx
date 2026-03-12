@@ -8,11 +8,24 @@ const ProctoringCamera = ({ active, onRecordingReady }) => {
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
   const chunksRef = useRef([]);
+  const onRecordingReadyRef = useRef(onRecordingReady);
 
   const [cameraOn, setCameraOn] = useState(false);
   const [micOn, setMicOn] = useState(false);
   const [warning, setWarning] = useState('');
   const [permissionDenied, setPermissionDenied] = useState(false);
+
+  // Keep callback ref in sync
+  useEffect(() => { onRecordingReadyRef.current = onRecordingReady; }, [onRecordingReady]);
+
+  // Ref callback — reattaches stream whenever the <video> DOM node changes
+  const setVideoRef = useCallback((node) => {
+    videoRef.current = node;
+    if (node && streamRef.current) {
+      node.srcObject = streamRef.current;
+      node.play().catch(() => {});
+    }
+  }, []);
 
   // ── Start media stream ──
   const startStream = useCallback(async () => {
@@ -29,6 +42,8 @@ const ProctoringCamera = ({ active, onRecordingReady }) => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Explicitly play — autoPlay attribute alone is unreliable when srcObject is set programmatically
+        videoRef.current.play().catch(() => {});
       }
 
       const videoTrack = stream.getVideoTracks()[0];
@@ -121,10 +136,10 @@ const ProctoringCamera = ({ active, onRecordingReady }) => {
 
   // Expose stop + blob + stream via callback so the parent can trigger upload
   useEffect(() => {
-    if (onRecordingReady) {
-      onRecordingReady({ stop: stopStream, getStream: () => streamRef.current });
+    if (onRecordingReadyRef.current) {
+      onRecordingReadyRef.current({ stop: stopStream, getStream: () => streamRef.current });
     }
-  }, [onRecordingReady, stopStream]);
+  }, [stopStream]);
 
   if (!active) return null;
 
@@ -133,11 +148,12 @@ const ProctoringCamera = ({ active, onRecordingReady }) => {
       {/* Video preview */}
       <div className="relative w-full aspect-video bg-black">
         <video
-          ref={videoRef}
+          ref={setVideoRef}
           autoPlay
           muted
           playsInline
           className="w-full h-full object-cover"
+          style={{ transform: 'scaleX(-1)' }}
         />
 
         {/* Overlay badges */}

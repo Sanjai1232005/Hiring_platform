@@ -11,6 +11,8 @@ const ProctoringRecording = require('../models/proctoringRecording.model');
 const ExplanationRecording = require('../models/explanationRecording.model');
 const ExplanationAnalysis = require('../models/explanationAnalysis.model');
 const InterviewRound = require('../models/interviewRound.model');
+const TaskAssessment = require('../models/taskAssessment.model');
+const Question = require('../models/question.model');
 const { calculateCandidateScore, WEIGHTS } = require('../services/ranking.service');
 
 
@@ -341,6 +343,12 @@ const getCurrentStageofStudent = async(req,res) =>{
           await app.save();
         }
 
+        // 4️⃣ Check task / coding question availability for each job
+        const [taskCount, questionCount] = await Promise.all([
+          TaskAssessment.countDocuments({ jobId: app.jobId }),
+          Question.countDocuments({ jobId: app.jobId }),
+        ]);
+
         return {
           _id: app._id,
           applicationId: app._id,
@@ -359,6 +367,8 @@ const getCurrentStageofStudent = async(req,res) =>{
           isShortlisted: app.isShortlisted,
           resumeScore: app.resumeScore,
           testScore: app.testScore,
+          taskCount,
+          questionCount,
         };
       })
     );
@@ -644,6 +654,83 @@ const reviewCandidate = async (req, res) => {
 };
 
 
+/* ── Dashboard stats ── */
+const getDashboardStats = async (req, res) => {
+  try {
+    const hrId = req.user.userId;
+    const jobs = await Job.find({ postedBy: hrId }).sort({ createdAt: -1 }).lean();
+    const jobIds = jobs.map((j) => j._id);
+
+    // aggregate per-job counts by currentStage
+    const stageCounts = await ApplicationProgress.aggregate([
+      { $match: { jobId: { $in: jobIds } } },
+      { $group: { _id: { jobId: '$jobId', stage: '$currentStage' }, count: { $sum: 1 } } },
+    ]);
+
+    // per-job totals + recent applicant count (last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentCounts = await ApplicationProgress.aggregate([
+      { $match: { jobId: { $in: jobIds }, createdAt: { $gte: sevenDaysAgo } } },
+      { $group: { _id: '$jobId', count: { $sum: 1 } } },
+    ]);
+    const recentMap = Object.fromEntries(recentCounts.map((r) => [r._id.toString(), r.count]));
+
+    // build per-job stats
+    const stageMap = {};
+    let totalApplicants = 0;
+    let totalSelected = 0;
+    let totalRejected = 0;
+    let totalInInterview = 0;
+
+    stageCounts.forEach(({ _id, count }) => {
+      const jid = _id.jobId.toString();
+      if (!stageMap[jid]) stageMap[jid] = {};
+      stageMap[jid][_id.stage] = count;
+    });
+
+    const jobStats = jobs.map((job) => {
+      const jid = job._id.toString();
+      const stages = stageMap[jid] || {};
+      const total = Object.values(stages).reduce((s, c) => s + c, 0);
+      const selected = stages.final || 0;
+      const rejected = stages.rejected || 0;
+      const inInterview = stages.interview || 0;
+
+      totalApplicants += total;
+      totalSelected += selected;
+      totalRejected += rejected;
+      totalInInterview += inInterview;
+
+      return {
+        ...job,
+        stats: {
+          total,
+          stages,
+          selected,
+          rejected,
+          inInterview,
+          recentApplicants: recentMap[jid] || 0,
+        },
+      };
+    });
+
+    res.json({
+      jobs: jobStats,
+      overview: {
+        totalJobs: jobs.length,
+        activeJobs: jobs.filter((j) => j.isActive).length,
+        totalApplicants,
+        totalSelected,
+        totalRejected,
+        totalInInterview,
+      },
+    });
+  } catch (err) {
+    console.error('getDashboardStats error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   applyToJob,
   getJobsByHRId,
@@ -659,4 +746,5 @@ module.exports = {
   getCurrentStageofStudent,
   reviewCandidate,
   getCandidateReviewData,
+  getDashboardStats,
 }

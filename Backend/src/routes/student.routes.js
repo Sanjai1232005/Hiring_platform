@@ -7,6 +7,9 @@ const authenticate = require('../middlewares/auth.middleware');
 // Get Student Profile
 router.get('/getProfile',authenticate, studentController.getProfile);
 
+// Student application stats
+router.get('/my-stats', authenticate, studentController.getMyStats);
+
 // Update Student Profile
 router.put('/updateProfile',authenticate, studentController.updateProfile);
 

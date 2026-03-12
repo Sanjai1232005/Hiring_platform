@@ -1,5 +1,7 @@
 const User = require("../models/user.model");
 const StudentProfile = require("../models/studentProfile.model");
+const ApplicationProgress = require("../models/applicationProgress.model");
+const Job = require("../models/job.model");
 
 /* ===========================
    GET OWN STUDENT PROFILE
@@ -127,5 +129,51 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
+  }
+};
+
+/* ===========================
+   GET STUDENT APPLICATION STATS
+   =========================== */
+exports.getMyStats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const apps = await ApplicationProgress.find({ userId }).populate('jobId', 'title company').lean();
+
+    const totalApplied = apps.length;
+    const stageCounts = {};
+    apps.forEach((a) => {
+      const s = a.currentStage || 'applied';
+      stageCounts[s] = (stageCounts[s] || 0) + 1;
+    });
+
+    const selected = stageCounts.final || 0;
+    const rejected = stageCounts.rejected || 0;
+    const inInterview = stageCounts.interview || 0;
+    const inProgress = totalApplied - selected - rejected;
+
+    // recent applications (last 5)
+    const recent = apps
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
+      .map((a) => ({
+        jobTitle: a.jobId?.title || 'Unknown',
+        company: a.jobId?.company || '',
+        stage: a.currentStage,
+        appliedAt: a.createdAt,
+      }));
+
+    res.json({
+      totalApplied,
+      selected,
+      rejected,
+      inInterview,
+      inProgress,
+      stages: stageCounts,
+      recent,
+    });
+  } catch (err) {
+    console.error('getMyStats error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };

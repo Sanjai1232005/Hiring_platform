@@ -9,6 +9,9 @@ const authenticate = require('../middlewares/auth.middleware');
 //Get HR Profile
 router.get('/getProfile',authenticate, hrController.getHRProfile);
 
+//Profile stats
+router.get('/profile-stats', authenticate, hrController.getProfileStats);
+
 //Update HR Profile
 router.put('/updateProfile',authenticate, hrController.updateHRProfile);
 
